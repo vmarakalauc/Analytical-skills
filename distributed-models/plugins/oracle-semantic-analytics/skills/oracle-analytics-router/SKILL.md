@@ -1,13 +1,40 @@
 ---
-description: Route Oracle 19c warehouse analytics questions to the correct subject-area skill, semantic model, validation flow, and optional read-only execution path.
+name: oracle-analytics-router
+description: Use when the user asks Oracle warehouse analytics questions that may match a supported subject area in this plugin
 disable-model-invocation: true
 ---
 
 # Oracle Analytics Router
 
-Use this skill when the user asks a warehouse analytics question that may be answered from Oracle using this plugin.
+## Overview
 
-## Routing workflow
+Routes Oracle 19c warehouse analytics requests to the right subject-area skill and semantic model. This is the generic entry point for the plugin; subject-specific interpretation belongs in the routed skill.
+
+## When to Use
+
+Use for:
+
+- Oracle warehouse analytics questions
+- Natural-language text-to-SQL requests over supported semantic models
+- General `/ask-analytics` requests that need subject-area selection
+
+Do not use for:
+
+- Non-Oracle data sources
+- Raw schema exploration
+- Direct SQL execution without validation
+- Subject areas absent from `routing/subject-area-routing.yaml`
+
+## Quick Reference
+
+- Routes file: `routing/subject-area-routing.yaml`
+- Core prerequisite check: `python scripts/check_prereqs.py`
+- Live execution readiness: `python scripts/check_prereqs.py --require-oracle`
+- Context generator: `python scripts/generate_prompt_context.py --question "..."`
+- SQL validator: `python scripts/validate_sql.py <sql-file>`
+- SQL executor: `python scripts/execute_oracle_readonly.py <sql-file> --yes`
+
+## Workflow
 
 1. Check core prerequisites with `scripts/check_prereqs.py`.
 2. Load `routing/subject-area-routing.yaml`.
@@ -20,7 +47,7 @@ Use this skill when the user asks a warehouse analytics question that may be ans
 9. Execute SQL only through `scripts/execute_oracle_readonly.py <sql-file> --yes` after explicit user approval.
 10. Explain the metric definition, filters, assumptions, and caveats.
 
-## Current routes
+## Supported Routes
 
 The demo currently supports:
 
@@ -28,7 +55,7 @@ The demo currently supports:
 
 Do not invent additional routes. Future subject areas should be added to `routing/subject-area-routing.yaml` and receive their own subject-area skill.
 
-## Prerequisite handling
+## Prerequisite Handling
 
 For prompt-context generation and SQL validation:
 
@@ -55,7 +82,7 @@ Then suggest:
 python plugins/oracle-semantic-analytics/scripts/configure_oracle.py
 ```
 
-## Safety rules
+## Safety Rules
 
 - Never ask the user to paste a password directly into Claude chat.
 - Never store credentials in this repository.
@@ -64,6 +91,13 @@ python plugins/oracle-semantic-analytics/scripts/configure_oracle.py
 - Never run `execute_oracle_readonly.py` without explicit user approval.
 - If the user asks for unsafe SQL or individual student records, refuse and offer aggregate alternatives.
 
-## Production caveat
+## Common Mistakes
+
+- Treating missing Oracle credentials as blocking for SQL generation. Credentials are required only for live execution.
+- Routing unsupported subject areas by inventing tables or metrics. Instead, explain the supported routes.
+- Executing SQL before validation or without explicit user approval.
+- Putting production governance in the local plugin. The production model is a central gateway.
+
+## Production Caveat
 
 This local skill/plugin model is for demo and power-user scenarios. Production usage should use a central governed MCP/API gateway.
