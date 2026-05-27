@@ -17,7 +17,7 @@ The plugin demonstrates the distributed semantic YAML + skills pattern:
 
 ## Install in Claude Code
 
-After pushing this repo to GitHub, users can add the marketplace:
+If publishing `distributed-models` as its own GitHub repository, users can add the marketplace:
 
 ```text
 /plugin marketplace add vmarakalauc/Analytical-skills
@@ -35,6 +35,8 @@ CLI equivalents:
 claude plugin marketplace add vmarakalauc/Analytical-skills
 claude plugin install oracle-semantic-analytics@analytical-skills
 ```
+
+If publishing from the parent `Analytical-skills` repository, use the root marketplace instead. The root marketplace points to `./distributed-models/plugins/oracle-semantic-analytics`.
 
 For local development before publishing, load the plugin directly:
 
