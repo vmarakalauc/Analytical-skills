@@ -13,6 +13,9 @@ except Exception:
 
 from validate_sql import validate
 
+def env_flag(name: str, default: str = "false") -> bool:
+    return os.getenv(name, default).strip().lower() in {"1", "true", "yes", "y"}
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("sql_file")
@@ -37,7 +40,11 @@ def main() -> int:
             print(f"- {e}")
         return 1
 
-    if not args.yes:
+    auto_approve = env_flag("ORACLE_ANALYTICS_AUTO_APPROVE")
+    if auto_approve:
+        print("ORACLE_ANALYTICS_AUTO_APPROVE=true; executing after validation without interactive prompt.")
+
+    if not args.yes and not auto_approve:
         if not sys.stdin.isatty():
             print("Refusing execution without explicit approval. Re-run with --yes after user confirmation.")
             return 1
@@ -56,7 +63,8 @@ def main() -> int:
     password = os.getenv("ORACLE_PASSWORD")
     dsn = os.getenv("ORACLE_DSN")
     max_rows = int(os.getenv("MAX_ROWS", "1000"))
-    thin_mode = os.getenv("ORACLE_THIN_MODE", "true").lower() == "true"
+    thin_mode = env_flag("ORACLE_THIN_MODE", "false")
+    oracle_client_lib = os.getenv("ORACLE_CLIENT_LIB_DIR")
 
     if not all([user, password, dsn]):
         print("Missing ORACLE_USER, ORACLE_PASSWORD, or ORACLE_DSN.")
@@ -64,7 +72,7 @@ def main() -> int:
         return 1
 
     if not thin_mode:
-        oracledb.init_oracle_client()
+        oracledb.init_oracle_client(lib_dir=oracle_client_lib or None)
 
     with oracledb.connect(user=user, password=password, dsn=dsn) as conn:
         conn.autocommit = False

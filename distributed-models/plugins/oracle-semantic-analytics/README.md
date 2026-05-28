@@ -65,9 +65,13 @@ export ORACLE_DSN="host.example.edu:1521/service_name"
 Optional:
 
 ```bash
-export ORACLE_THIN_MODE=true
+export ORACLE_THIN_MODE=false
+export ORACLE_CLIENT_LIB_DIR="/path/to/instantclient"
 export MAX_ROWS=1000
+export ORACLE_ANALYTICS_AUTO_APPROVE=false
 ```
+
+The executor defaults to Oracle thick mode because many Oracle environments use Native Network Encryption. Set `ORACLE_THIN_MODE=true` only when your Oracle service supports thin mode. Set `ORACLE_ANALYTICS_AUTO_APPROVE=true` only for a controlled demo session where you want validated SQL to execute without an interactive prompt.
 
 Never commit real Oracle credentials.
 
@@ -93,7 +97,7 @@ python scripts/validate_sql.py examples/sample_generated_sql.sql
 
 ## Execute SQL
 
-Execution is optional and must happen only after SQL validation and explicit user approval:
+Execution is optional and must happen only after SQL validation and explicit user approval, unless `ORACLE_ANALYTICS_AUTO_APPROVE=true` is set in the local shell or ignored user config:
 
 ```powershell
 python scripts/execute_oracle_readonly.py examples/sample_generated_sql.sql --yes

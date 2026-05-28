@@ -33,6 +33,8 @@ Do not use for:
 - Context generator: `python scripts/generate_prompt_context.py --question "..."`
 - SQL validator: `python scripts/validate_sql.py <sql-file>`
 - SQL executor: `python scripts/execute_oracle_readonly.py <sql-file> --yes`
+- Demo auto-approval: `ORACLE_ANALYTICS_AUTO_APPROVE=true`
+- Oracle mode default: thick mode unless `ORACLE_THIN_MODE=true`
 
 ## Workflow
 
@@ -88,7 +90,7 @@ python plugins/oracle-semantic-analytics/scripts/configure_oracle.py
 - Never store credentials in this repository.
 - Never return row-level sensitive records.
 - Never bypass validation.
-- Never run `execute_oracle_readonly.py` without explicit user approval.
+- Never run `execute_oracle_readonly.py` without explicit user approval unless `ORACLE_ANALYTICS_AUTO_APPROVE=true` is already set by the user in the local environment.
 - If the user asks for unsafe SQL or individual student records, refuse and offer aggregate alternatives.
 
 ## Common Mistakes
@@ -96,6 +98,7 @@ python plugins/oracle-semantic-analytics/scripts/configure_oracle.py
 - Treating missing Oracle credentials as blocking for SQL generation. Credentials are required only for live execution.
 - Routing unsupported subject areas by inventing tables or metrics. Instead, explain the supported routes.
 - Executing SQL before validation or without explicit user approval.
+- Assuming thin mode works in all Oracle environments. This demo defaults to thick mode for Native Network Encryption compatibility.
 - Putting production governance in the local plugin. The production model is a central gateway.
 
 ## Production Caveat

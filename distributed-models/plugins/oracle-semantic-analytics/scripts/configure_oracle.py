@@ -23,15 +23,20 @@ def main() -> int:
     user = input("Oracle user: ").strip()
     dsn = input("Oracle DSN (host:1521/service): ").strip()
     password = getpass.getpass("Oracle password: ")
+    client_lib = input("Oracle Client library directory for thick mode (optional): ").strip()
 
-    ENV_FILE.write_text(
-        f"ORACLE_USER={dotenv_quote(user)}\n"
-        f"ORACLE_PASSWORD={dotenv_quote(password)}\n"
-        f"ORACLE_DSN={dotenv_quote(dsn)}\n"
-        f'ORACLE_THIN_MODE="true"\n'
-        f'MAX_ROWS="1000"\n',
-        encoding="utf-8"
-    )
+    lines = [
+        f"ORACLE_USER={dotenv_quote(user)}\n",
+        f"ORACLE_PASSWORD={dotenv_quote(password)}\n",
+        f"ORACLE_DSN={dotenv_quote(dsn)}\n",
+        'ORACLE_THIN_MODE="false"\n',
+        'MAX_ROWS="1000"\n',
+        'ORACLE_ANALYTICS_AUTO_APPROVE="false"\n',
+    ]
+    if client_lib:
+        lines.append(f"ORACLE_CLIENT_LIB_DIR={dotenv_quote(client_lib)}\n")
+
+    ENV_FILE.write_text("".join(lines), encoding="utf-8")
     if os.name == "posix":
         ENV_FILE.chmod(0o600)
 

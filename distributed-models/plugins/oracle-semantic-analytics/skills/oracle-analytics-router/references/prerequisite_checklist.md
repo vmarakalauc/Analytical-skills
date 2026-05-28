@@ -21,7 +21,9 @@ Required for live Oracle execution:
 Optional:
 
 - `ORACLE_THIN_MODE`
+- `ORACLE_CLIENT_LIB_DIR`
 - `MAX_ROWS`
+- `ORACLE_ANALYTICS_AUTO_APPROVE`
 
 Validation-only setup should pass with:
 
