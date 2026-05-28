@@ -12,3 +12,4 @@ wallet/
 *.p12
 *.pem
 *.key
+tmpclaude-*

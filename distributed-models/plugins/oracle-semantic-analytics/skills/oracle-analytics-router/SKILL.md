@@ -30,9 +30,10 @@ Do not use for:
 - Routes file: `routing/subject-area-routing.yaml`
 - Core prerequisite check: `python scripts/check_prereqs.py`
 - Live execution readiness: `python scripts/check_prereqs.py --require-oracle`
+- Local env file support: `--env-file <path-to-local-.env>`
 - Context generator: `python scripts/generate_prompt_context.py --question "..."`
-- SQL validator: `python scripts/validate_sql.py <sql-file>`
-- SQL executor: `python scripts/execute_oracle_readonly.py <sql-file> --yes`
+- SQL validator: `python scripts/validate_sql.py -` reads generated SQL from stdin
+- SQL executor: `python scripts/execute_oracle_readonly.py - --yes` reads generated SQL from stdin
 - Demo auto-approval: `ORACLE_ANALYTICS_AUTO_APPROVE=true`
 - Oracle mode default: thick mode unless `ORACLE_THIN_MODE=true`
 
@@ -48,6 +49,8 @@ Do not use for:
 8. Ask the user before running SQL against Oracle.
 9. Execute SQL only through `scripts/execute_oracle_readonly.py <sql-file> --yes` after explicit user approval.
 10. Explain the metric definition, filters, assumptions, and caveats.
+
+All relative paths above are relative to the installed plugin root. Do not search or explore the user's current working directory for bundled plugin files. Do not read or print `.env` file contents; pass `.env` paths with `--env-file`.
 
 ## Supported Routes
 
@@ -96,6 +99,9 @@ python plugins/oracle-semantic-analytics/scripts/configure_oracle.py
 ## Common Mistakes
 
 - Treating missing Oracle credentials as blocking for SQL generation. Credentials are required only for live execution.
+- Looking for bundled plugin files in the user's working directory. Resolve `scripts/`, `routing/`, `assets/`, and `skills/` from the installed plugin root.
+- Leaving generated SQL scratch files in the user's project. Prefer piping generated SQL to `validate_sql.py -` and `execute_oracle_readonly.py -`.
+- Reading `.env` into the conversation. Never display credential files.
 - Routing unsupported subject areas by inventing tables or metrics. Instead, explain the supported routes.
 - Executing SQL before validation or without explicit user approval.
 - Assuming thin mode works in all Oracle environments. This demo defaults to thick mode for Native Network Encryption compatibility.

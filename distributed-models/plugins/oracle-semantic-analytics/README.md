@@ -50,8 +50,10 @@ For SQL generation and validation only, Oracle credentials are not required:
 
 ```powershell
 python scripts/check_prereqs.py
+python scripts/check_prereqs.py --env-file C:\sql\.env --require-oracle
 python scripts/validate_plugin_package.py
 python scripts/validate_sql.py examples/sample_generated_sql.sql
+Get-Content examples/sample_generated_sql.sql | python scripts/validate_sql.py -
 ```
 
 For optional Oracle execution, use environment variables:
@@ -101,6 +103,8 @@ Execution is optional and must happen only after SQL validation and explicit use
 
 ```powershell
 python scripts/execute_oracle_readonly.py examples/sample_generated_sql.sql --yes
+python scripts/execute_oracle_readonly.py examples/sample_generated_sql.sql --env-file C:\sql\.env --yes
+Get-Content examples/sample_generated_sql.sql | python scripts/execute_oracle_readonly.py - --env-file C:\sql\.env --yes
 ```
 
 The executor runs only after the SQL passes local validation, starts an Oracle read-only transaction, and caps returned rows with `MAX_ROWS`. This remains demo-level validation, not production governance.
@@ -114,6 +118,8 @@ The executor runs only after the SQL passes local validation, starts an Oracle r
 5. Validate with `python scripts/validate_sql.py <sql-file>`.
 6. Ask for user approval before Oracle execution.
 7. Execute only with `python scripts/execute_oracle_readonly.py <sql-file> --yes`.
+
+For Claude Code command usage, prefer piping generated SQL to `validate_sql.py -` and `execute_oracle_readonly.py -` so temporary SQL files are not left in the user's project folder.
 
 ## Safety boundaries
 

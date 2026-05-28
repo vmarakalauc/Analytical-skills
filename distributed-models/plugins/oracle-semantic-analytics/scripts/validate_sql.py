@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import sys
 from pathlib import Path
 
 FORBIDDEN = [
@@ -34,7 +35,8 @@ RESTRICTED_COLUMNS = {
 }
 
 def normalize(sql: str) -> str:
-    return re.sub(r"\s+", " ", sql.strip(), flags=re.MULTILINE).upper()
+    cleaned = sql.replace("\x00", "").lstrip("\ufeff\xef\xbb\xbf").strip()
+    return re.sub(r"\s+", " ", cleaned, flags=re.MULTILINE).upper()
 
 def referenced_tables(normalized_sql: str) -> set[str]:
     tables = set()
@@ -92,10 +94,13 @@ def validate(sql: str) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("sql_file")
+    parser.add_argument("sql_file", help="SQL file to validate, or '-' to read SQL from stdin.")
     args = parser.parse_args()
 
-    sql = Path(args.sql_file).read_text(encoding="utf-8")
+    if args.sql_file == "-":
+        sql = sys.stdin.read()
+    else:
+        sql = Path(args.sql_file).read_text(encoding="utf-8")
     errors = validate(sql)
 
     if errors:

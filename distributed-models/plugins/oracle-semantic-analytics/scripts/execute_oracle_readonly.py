@@ -18,7 +18,11 @@ def env_flag(name: str, default: str = "false") -> bool:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("sql_file")
+    parser.add_argument("sql_file", help="SQL file to execute, or '-' to read SQL from stdin.")
+    parser.add_argument(
+        "--env-file",
+        help="Optional local .env file containing ORACLE_USER, ORACLE_PASSWORD, ORACLE_DSN, and Oracle client settings.",
+    )
     parser.add_argument(
         "--yes",
         action="store_true",
@@ -28,11 +32,24 @@ def main() -> int:
 
     if load_dotenv:
         load_dotenv()
-        local_env = Path.home() / ".oracle-semantic-analytics" / ".env"
-        if local_env.exists():
-            load_dotenv(local_env)
+        for candidate in [
+            Path.cwd() / ".env",
+            Path.home() / ".oracle-semantic-analytics" / ".env",
+        ]:
+            if candidate.exists():
+                load_dotenv(candidate, override=True)
+        if args.env_file:
+            env_path = Path(args.env_file).expanduser()
+            if env_path.exists():
+                load_dotenv(env_path, override=True)
+            else:
+                print(f"Env file not found: {env_path}")
+                return 1
 
-    sql = Path(args.sql_file).read_text(encoding="utf-8")
+    if args.sql_file == "-":
+        sql = sys.stdin.read()
+    else:
+        sql = Path(args.sql_file).read_text(encoding="utf-8")
     errors = validate(sql)
     if errors:
         print("Refusing execution because validation failed:")

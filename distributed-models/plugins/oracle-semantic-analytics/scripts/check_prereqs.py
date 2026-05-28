@@ -7,6 +7,11 @@ import sys
 import argparse
 from pathlib import Path
 
+try:
+    from dotenv import load_dotenv
+except Exception:
+    load_dotenv = None
+
 ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_PACKAGES = ["yaml", "dotenv", "sqlparse"]
@@ -21,14 +26,36 @@ REQUIRED_FILES = [
 def package_ok(import_name: str) -> bool:
     return importlib.util.find_spec(import_name) is not None
 
+def load_env_files(env_file: str | None) -> None:
+    if not load_dotenv:
+        return
+    load_dotenv()
+    for candidate in [
+        Path.cwd() / ".env",
+        Path.home() / ".oracle-semantic-analytics" / ".env",
+    ]:
+        if candidate.exists():
+            load_dotenv(candidate, override=True)
+    if env_file:
+        env_path = Path(env_file).expanduser()
+        if env_path.exists():
+            load_dotenv(env_path, override=True)
+        else:
+            print(f"Env file not found: {env_path}")
+
 def main() -> int:
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--env-file",
+        help="Optional local .env file containing ORACLE_USER, ORACLE_PASSWORD, ORACLE_DSN, and Oracle client settings.",
+    )
     parser.add_argument(
         "--require-oracle",
         action="store_true",
         help="Fail when Oracle execution packages or ORACLE_* settings are missing.",
     )
     args = parser.parse_args()
+    load_env_files(args.env_file)
 
     print("Oracle Semantic Analytics prerequisite check")
     print("=" * 52)
