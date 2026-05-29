@@ -2,6 +2,68 @@
 
 This Claude Code plugin demonstrates local/distributed Oracle semantic analytics for an Oracle 19c warehouse demo. It ships Claude Code skills, a bundled semantic YAML model, helper scripts, and local SQL validation.
 
+## Quickstart for Claude Code users
+
+1. Install or update the plugin from the marketplace.
+
+   ```text
+   /plugin
+   ```
+
+2. Reload plugins after install or update.
+
+   ```text
+   /reload-plugins
+   ```
+
+3. Run first-time setup once per workstation.
+
+   ```text
+   /oracle-semantic-analytics:setup-analytics
+   ```
+
+   Setup creates `~/.oracle-semantic-analytics/config.json`, a local Python runtime, and a reports directory. It asks for non-secret settings such as SIA username, DSN, Oracle Client folder, row limit, and auto-approval preference. It does not store the Oracle password.
+
+4. Set the Oracle password in the shell that starts Claude Code.
+
+   PowerShell:
+
+   ```powershell
+   $env:SIA_USER_PWD = "your_password"
+   claude
+   ```
+
+   CMD:
+
+   ```cmd
+   set SIA_USER_PWD=your_password
+   claude
+   ```
+
+   Do not paste the password into Claude chat. If Claude Code is already running, close it, set `SIA_USER_PWD`, and start Claude Code again from that same shell.
+
+5. Check readiness.
+
+   ```text
+   /oracle-semantic-analytics:check-oracle-config
+   ```
+
+   Missing `SIA_USER_PWD` blocks live Oracle execution only. SQL generation and validation can still run.
+
+6. Ask analytics questions.
+
+   ```text
+   /oracle-semantic-analytics:ask-analytics
+   ```
+
+   Example:
+
+   ```text
+   get me full time student count for each fall term
+   ```
+
+For controlled demos, set `sia_auto_approve` during setup or set `SIA_AUTO_APPROVE=true` in the shell so validated read-only SQL executes without an extra prompt.
+
 The plugin follows Claude Code plugin conventions:
 
 - `.claude-plugin/plugin.json` contains plugin metadata only.
