@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 import importlib.util
-import os
 import sys
 import argparse
 from pathlib import Path
+
+from analytics_config import CONFIG_FILE, runtime_settings
 
 try:
     from dotenv import load_dotenv
@@ -19,6 +20,8 @@ EXECUTION_PACKAGES = ["oracledb"]
 REQUIRED_FILES = [
     ROOT / "routing" / "subject-area-routing.yaml",
     ROOT / "assets" / "semantic_models" / "sia_term_enrollments.yaml",
+    ROOT / "scripts" / "setup_analytics.py",
+    ROOT / "scripts" / "run_tool.py",
     ROOT / "scripts" / "validate_sql.py",
     ROOT / "scripts" / "execute_oracle_readonly.py",
 ]
@@ -29,13 +32,6 @@ def package_ok(import_name: str) -> bool:
 def load_env_files(env_file: str | None) -> None:
     if not load_dotenv:
         return
-    load_dotenv()
-    for candidate in [
-        Path.cwd() / ".env",
-        Path.home() / ".oracle-semantic-analytics" / ".env",
-    ]:
-        if candidate.exists():
-            load_dotenv(candidate, override=True)
     if env_file:
         env_path = Path(env_file).expanduser()
         if env_path.exists():
@@ -47,12 +43,12 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--env-file",
-        help="Optional local .env file containing ORACLE_USER, ORACLE_PASSWORD, ORACLE_DSN, and Oracle client settings.",
+        help="Optional legacy local .env file. Prefer ~/.oracle-semantic-analytics/config.json plus SIA_USER_PWD.",
     )
     parser.add_argument(
         "--require-oracle",
         action="store_true",
-        help="Fail when Oracle execution packages or ORACLE_* settings are missing.",
+        help="Fail when Oracle execution packages or SIA settings are missing.",
     )
     args = parser.parse_args()
     load_env_files(args.env_file)
@@ -85,22 +81,33 @@ def main() -> int:
         if status == "MISSING":
             ok = False
 
-    user = os.getenv("ORACLE_USER")
-    password = os.getenv("ORACLE_PASSWORD")
-    dsn = os.getenv("ORACLE_DSN")
+    settings = runtime_settings()
+    if settings["config_error"]:
+        print(f"Config: ERROR ({settings['config_error']})")
+        oracle_ok = False
+    else:
+        print(f"Config {CONFIG_FILE}: {'OK' if CONFIG_FILE.exists() else 'MISSING'}")
 
-    print(f"ORACLE_USER: {'OK' if user else 'MISSING'}")
-    print(f"ORACLE_PASSWORD: {'OK' if password else 'MISSING'}")
-    print(f"ORACLE_DSN: {'OK' if dsn else 'MISSING'}")
+    user = settings["user"]
+    password = settings["password"]
+    dsn = settings["dsn"]
+    oracle_client_lib = settings["oracle_client_lib"]
+
+    print(f"SIA_USER: {'OK' if user else 'MISSING'}")
+    print(f"SIA_USER_PWD: {'OK' if password else 'MISSING'}")
+    print(f"SIA_DSN: {'OK' if dsn else 'MISSING'}")
+    print(f"ORACLE_CLIENT_LIB: {'OK' if oracle_client_lib else 'MISSING'}")
+    print(f"SIA_AUTO_APPROVE: {'OK' if settings['auto_approve'] else 'false'}")
+    print(f"SIA_MAX_ROWS: {settings['max_rows']}")
 
     if not all([user, password, dsn]):
         oracle_ok = False
         print()
         print("Oracle execution is not configured.")
-        print("Set environment variables or use a local .env file that is not committed:")
-        print('  export ORACLE_USER="your_user"')
-        print('  export ORACLE_PASSWORD="your_password"')
-        print('  export ORACLE_DSN="host:1521/service"')
+        print("Run the first-time setup helper, then set the password in the shell that starts Claude Code:")
+        print("  python scripts/setup_analytics.py")
+        print('  PowerShell: $env:SIA_USER_PWD = "your_password"')
+        print('  CMD: set SIA_USER_PWD=your_password')
         print()
         print("Do not paste passwords into Claude chat.")
 

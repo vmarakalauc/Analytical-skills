@@ -30,21 +30,24 @@ Do not use for:
 ## Quick Reference
 
 - Semantic contract: `assets/semantic_models/sia_term_enrollments.yaml`
-- Core prerequisite check: `python scripts/check_prereqs.py`
-- SQL validator: `python scripts/validate_sql.py <sql-file>`
+- Core prerequisite check: `python scripts/run_tool.py check_prereqs.py`
+- SQL validator: `python scripts/run_tool.py validate_sql.py -`
+- First-time setup for live execution: `python scripts/setup_analytics.py`
+- Live execution password: `SIA_USER_PWD` in the shell that starts Claude Code
 - Default metric for "students": `COUNT(DISTINCT SCHOLAR_WID)`
 - Default active enrollment filters: `DELETE_FLG = 'N'` and `X_TERM_ENROLLED_FLAG = 'Y'`
 
 ## Workflow
 
-1. Confirm the package is available with `scripts/check_prereqs.py`.
+1. Confirm the package is available with `scripts/run_tool.py check_prereqs.py`.
 2. Load `assets/semantic_models/sia_term_enrollments.yaml`.
 3. Clarify ambiguous terms, especially "current term", "this term", "students", and "enrollments".
 4. Resolve logical measures, dimensions, filters, and relationships first; then use the Oracle 19c physical mapping to generate `SELECT` SQL.
 5. Apply active enrollment filters by default.
 6. Add `FETCH FIRST n ROWS ONLY` for demo queries.
-7. Validate generated SQL with `scripts/validate_sql.py` without asking first; local validation is safe and does not connect to Oracle.
+7. Validate generated SQL with `scripts/run_tool.py validate_sql.py -` without asking first; local validation is safe and does not connect to Oracle.
 8. Do not require Oracle credentials unless the user asks to execute the generated SQL.
+9. For live execution, use the plugin setup state and `SIA_USER_PWD`; do not ask for or display passwords.
 
 ## Semantic Contract
 
@@ -69,7 +72,7 @@ assets/semantic_models/sia_term_enrollments.yaml
 - Apply active enrollment filters by default.
 - Group only by dimensions defined or mapped in the semantic model.
 - Include an Oracle row limit with `FETCH FIRST n ROWS ONLY` for demo queries.
-- Validate generated SQL with `scripts/validate_sql.py` before execution; no user approval is needed for validation.
+- Validate generated SQL with `scripts/run_tool.py validate_sql.py -` before execution; no user approval is needed for validation.
 - Do not expose individual student records.
 - Do not include student names, emails, IDs, GPA, or identifiable records unless explicitly allowed by policy. For this demo, treat those as disallowed.
 

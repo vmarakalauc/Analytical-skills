@@ -86,13 +86,22 @@ def validate_routing() -> None:
             fail(f"route references missing semantic model: {route['semantic_model']}")
 
 def validate_no_committed_secrets() -> None:
+    ignored_parts = {
+        ".git",
+        ".venv",
+        "venv",
+        "__pycache__",
+        ".oracle-semantic-analytics",
+    }
     for path in REPO_ROOT.rglob("*"):
-        if not path.is_file() or ".git" in path.parts:
+        if not path.is_file() or ignored_parts.intersection(path.parts):
+            continue
+        if any(part.startswith(".tmp-") for part in path.parts):
             continue
         rel = path.relative_to(REPO_ROOT)
         if rel in ALLOWED_SECRET_FILES:
             continue
-        if path.suffix.lower() in {".pyc", ".png", ".jpg", ".jpeg", ".gif", ".pdf"}:
+        if path.suffix.lower() in {".pyc", ".png", ".jpg", ".jpeg", ".gif", ".pdf", ".exe", ".dll"}:
             continue
         text = path.read_text(encoding="utf-8", errors="ignore")
         for pattern in SECRET_PATTERNS:

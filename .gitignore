@@ -13,3 +13,4 @@ wallet/
 *.pem
 *.key
 tmpclaude-*
+.tmp-*
