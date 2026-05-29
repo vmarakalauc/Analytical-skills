@@ -30,12 +30,16 @@ def main() -> int:
     sql_rules = read(ROOT / "skills" / "oracle-analytics-router" / "references" / "sql_rules.md")
 
     relevant = {
-        "name": model.get("name"),
-        "description": model.get("description"),
-        "tables": model.get("tables", []),
-        "relationships": model.get("relationships", []),
+        "semantic_model": model.get("semantic_model", {}),
+        "domain": model.get("domain", {}),
+        "business_glossary": model.get("business_glossary", []),
+        "logical_model": model.get("logical_model", {}),
+        "semantic_rules": model.get("semantic_rules", {}),
+        "physical_mappings": model.get("physical_mappings", []),
+        "governance": model.get("governance", {}),
+        "validation": model.get("validation", {}),
+        "presentation": model.get("presentation", {}),
         "verified_queries": model.get("verified_queries", []),
-        "module_custom_instructions": model.get("module_custom_instructions", "")
     }
 
     print(f'''

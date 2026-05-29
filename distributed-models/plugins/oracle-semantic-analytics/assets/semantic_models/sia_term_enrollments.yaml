@@ -1,2079 +1,837 @@
-name: SIA_TERM_ENROLLMENTS
-description: Student Information Analytics semantic model for term enrollment analysis. Provides comprehensive enrollment data including student demographics, academic programs, major/minor declarations, academic load, and new vs returning student tracking. Optimized for institutional research, enrollment management, and academic planning queries.
-
-tables:
-  # ============================================================================
-  # FACT TABLE: Term Enrollment
-  # ============================================================================
-  - name: term_enrollment_fact
-    synonyms:
-      - enrollments
-      - student enrollments
-      - term records
-      - enrollment transactions
-    description: Core fact table containing term enrollment records for each student-term combination. Includes academic program associations, enrollment status, and grade information. Each row represents one student's enrollment in one academic term.
-    base_table:
-      database: OBIA_DW
-      schema: OBIA_DW
-      table: W_SIA_TERM_ENRLMT_F
-
-    dimensions:
-      - name: new_returning_student
-        synonyms:
-          - student type
-          - new or returning
-          - enrollment type
-          - first time or continuing
-        description: Indicates whether the student is New (first-time) or Returning (continuing) for this specific term. Critical for new student enrollment tracking and retention analysis.
-        expr: X_NEW_RETURNING
-        data_type: VARCHAR2(20)
-        sample_values:
-          - New
-          - Returning
-
-      - name: term_enrolled_flag
-        synonyms:
-          - enrolled
-          - active enrollment
-          - enrollment status
-        description: Flag indicating if the student is actively enrolled in the term (Y=Yes, N=No). Use this to filter for active enrollments.
-        expr: X_TERM_ENROLLED_FLAG
-        data_type: VARCHAR2(1)
-        sample_values:
-          - Y
-          - N
-
-      - name: delete_flag
-        synonyms:
-          - deleted
-          - soft delete
-          - record status
-        description: Soft delete flag. N=Active record, Y=Deleted record. Always filter for N to exclude deleted records.
-        expr: DELETE_FLG
-        data_type: VARCHAR2(1)
-        sample_values:
-          - N
-          - Y
-
-      - name: enrollment_status
-        synonyms:
-          - enroll status
-          - student enrollment status
-        description: Student enrollment status code for the term
-        expr: X_ENRL_STATUS
-        data_type: VARCHAR2(20)
-
-      - name: leave_of_absence_flag
-        synonyms:
-          - LOA
-          - on leave
-          - leave flag
-        description: Flag indicating if the student is on a Leave of Absence (Y/N)
-        expr: X_LOA_FLAG
-        data_type: VARCHAR2(1)
-        sample_values:
-          - Y
-          - N
-
-      - name: most_recent_term_flag
-        synonyms:
-          - latest term
-          - current term flag
-          - most recent quarter flag
-        description: Flag indicating if this is the most recent term record for the student
-        expr: X_MOST_RECENT_QTR_FLAG
-        data_type: VARCHAR2(1)
-        sample_values:
-          - Y
-          - N
-
-      - name: phd_flag
-        synonyms:
-          - doctoral flag
-          - doctorate
-          - PhD student
-        description: Flag indicating if the student is a PhD student (Y/N)
-        expr: X_PHD_FLAG
-        data_type: VARCHAR2(1)
-        sample_values:
-          - Y
-          - N
-
-      - name: study_away_flag
-        synonyms:
-          - studying abroad
-          - study abroad flag
-          - away program
-        description: Flag indicating if the student is in a study away program (Y/N)
-        expr: X_STUDY_AWAY_FLAG
-        data_type: VARCHAR2(1)
-        sample_values:
-          - Y
-          - N
-
-      - name: primary_career_flag
-        synonyms:
-          - primary career
-          - main career flag
-        description: Flag indicating if this enrollment record is for the student's primary academic career
-        expr: X_PRIM_CAREER_FLG
-        data_type: VARCHAR2(1)
-        sample_values:
-          - Y
-          - N
-
-      - name: study_agreement_code
-        synonyms:
-          - study agreement
-          - agreement code
-        description: Study agreement code for the enrollment
-        expr: STUDY_AGREEMENT
-        data_type: VARCHAR2(20)
-
-      - name: study_agreement_description
-        synonyms:
-          - study agreement name
-          - agreement description
-        description: Human-readable description of the study agreement
-        expr: X_STUDY_AGREEMENT_DESCR
-        data_type: VARCHAR2(100)
-
-      - name: eligibility_to_enroll
-        synonyms:
-          - eligible to enroll
-          - enrollment eligibility
-        description: Eligibility to enroll indicator for the student
-        expr: ELIG_TO_ENROLL
-        data_type: VARCHAR2(20)
-
-    time_dimensions:
-      - name: enrollment_date
-        synonyms:
-          - enrollment timestamp
-          - when enrolled
-        description: Timestamp when the enrollment record was created
-        expr: INTEGRATION_ID
-        data_type: TIMESTAMP
-
-      - name: admit_session_begin_date
-        synonyms:
-          - admit date
-          - session start date
-          - admit term begin
-        description: Begin date of the admit term session
-        expr: X_ADMIT_SESSION_BEG_DT
-        data_type: DATE
-
-      - name: degree_conferral_date
-        synonyms:
-          - graduation date
-          - degree awarded date
-          - conferral date
-        description: Date when the degree was conferred (graduation date)
-        expr: X_CONF_DT
-        data_type: DATE
-
-    facts:
-      - name: scholar_wid
-        description: Warehouse identifier for the student (foreign key to scholar dimension)
-        expr: SCHOLAR_WID
-        data_type: NUMBER(18,0)
-
-      - name: term_wid
-        description: Warehouse identifier for the term (foreign key to term dimension)
-        expr: TERM_WID
-        data_type: NUMBER(18,0)
-
-      - name: academic_career_wid
-        description: Warehouse identifier for academic career (foreign key)
-        expr: ACAD_CAR_WID
-        data_type: NUMBER(18,0)
-
-      - name: academic_group_wid
-        description: Warehouse identifier for academic group (foreign key)
-        expr: ACAD_GRP_WID
-        data_type: NUMBER(18,0)
-
-      - name: academic_load_wid
-        description: Warehouse identifier for academic load (foreign key)
-        expr: ACAD_LOAD_WID
-        data_type: NUMBER(18,0)
-
-      - name: academic_level_wid
-        description: Warehouse identifier for academic level at term start (foreign key)
-        expr: STRT_ACAD_LVL_WID
-        data_type: NUMBER(18,0)
-
-      - name: academic_org_wid
-        description: Warehouse identifier for academic organization (foreign key)
-        expr: ACAD_ORG_WID
-        data_type: NUMBER(18,0)
-
-      - name: primary_academic_program_wid
-        description: Warehouse identifier for primary academic program (foreign key)
-        expr: PRI_ACAD_PROG_WID
-        data_type: NUMBER(18,0)
-
-      - name: program_status_wid
-        description: Warehouse identifier for program enrollment status (foreign key)
-        expr: PROG_STAT_WID
-        data_type: NUMBER(18,0)
-
-      - name: major_1_wid
-        description: Warehouse identifier for first major (foreign key to academic plan)
-        expr: X_MAJOR_1_WID
-        data_type: NUMBER(18,0)
-
-      - name: major_2_wid
-        description: Warehouse identifier for second major (foreign key to academic plan)
-        expr: X_MAJOR_2_WID
-        data_type: NUMBER(18,0)
-
-      - name: major_3_wid
-        description: Warehouse identifier for third major (foreign key to academic plan)
-        expr: X_MAJOR_3_WID
-        data_type: NUMBER(18,0)
-
-      - name: major_4_wid
-        description: Warehouse identifier for fourth major (foreign key to academic plan)
-        expr: X_MAJOR_4_WID
-        data_type: NUMBER(18,0)
-
-      - name: minor_1_wid
-        description: Warehouse identifier for first minor (foreign key to academic plan)
-        expr: X_MINOR_1_WID
-        data_type: NUMBER(18,0)
-
-      - name: minor_2_wid
-        description: Warehouse identifier for second minor (foreign key to academic plan)
-        expr: X_MINOR_2_WID
-        data_type: NUMBER(18,0)
-
-      - name: minor_3_wid
-        description: Warehouse identifier for third minor (foreign key to academic plan)
-        expr: X_MINOR_3_WID
-        data_type: NUMBER(18,0)
-
-      - name: subplan_1_wid
-        description: Warehouse identifier for first sub-plan/concentration (foreign key)
-        expr: X_SUBPLAN_1_WID
-        data_type: NUMBER(18,0)
-
-      - name: subplan_2_wid
-        description: Warehouse identifier for second sub-plan/concentration (foreign key)
-        expr: X_SUBPLAN_2_WID
-        data_type: NUMBER(18,0)
-
-      - name: subplan_3_wid
-        description: Warehouse identifier for third sub-plan/concentration (foreign key)
-        expr: X_SUBPLAN_3_WID
-        data_type: NUMBER(18,0)
-
-      - name: subplan_4_wid
-        description: Warehouse identifier for fourth sub-plan/concentration (foreign key)
-        expr: X_SUBPLAN_4_WID
-        data_type: NUMBER(18,0)
-
-      - name: grade_points
-        synonyms:
-          - grade pts
-          - gpa points
-          - quality points
-        description: Grade points earned for this enrollment. Used to calculate GPA.
-        expr: GRADE_PTS
-        data_type: NUMBER(10,2)
-        sample_values:
-          - 4.0
-          - 3.5
-          - 0.0
-
-      - name: current_gpa
-        synonyms:
-          - term GPA
-          - current term gpa
-          - semester GPA
-        description: The current term's student GPA for an academic career
-        expr: CUR_GPA_PTS
-        data_type: NUMBER(10,4)
-
-      - name: cumulative_gpa
-        synonyms:
-          - cum GPA
-          - overall GPA
-          - total GPA
-          - cumulative grade point average
-        description: Student's cumulative GPA for an academic career
-        expr: CUM_GPA_PTS
-        data_type: NUMBER(10,4)
-
-      - name: course_count
-        synonyms:
-          - number of courses
-          - courses taken
-          - class count
-        description: The number of courses the student took during the specified term
-        expr: CRSE_CNT
-        data_type: NUMBER(10,0)
-
-      - name: units_taken_in_progress
-        synonyms:
-          - credit hours attempted
-          - units attempted
-          - credit hours for term
-        description: Units taken in progress for the term (credit hours attempted)
-        expr: TAKEN_PRGRS_UNIT
-        data_type: NUMBER(10,2)
-
-      - name: units_taken_for_gpa
-        synonyms:
-          - GPA units taken
-          - units toward GPA
-        description: Units taken that count toward the grade point average
-        expr: TAKEN_GPA_UNIT
-        data_type: NUMBER(10,2)
-
-      - name: units_taken_non_gpa
-        synonyms:
-          - non-GPA units taken
-          - units not toward GPA
-        description: Units taken that do not count toward the grade point average
-        expr: TAKEN_NON_GPA_UNIT
-        data_type: NUMBER(10,2)
-
-      - name: units_passed_in_progress
-        synonyms:
-          - credit hours earned
-          - units earned
-          - units passed
-        description: Units passed in progress for the term (credit hours earned)
-        expr: PASSD_PRGRS_UNIT
-        data_type: NUMBER(10,2)
-
-      - name: units_passed_for_gpa
-        synonyms:
-          - GPA units passed
-          - units passed toward GPA
-        description: Units passed that count toward the grade point average
-        expr: PASSD_GPA_UNIT
-        data_type: NUMBER(10,2)
-
-      - name: units_passed_non_gpa
-        synonyms:
-          - non-GPA units passed
-        description: Units passed that do not count toward the grade point average
-        expr: PASSD_NON_GPA_UNIT
-        data_type: NUMBER(10,2)
-
-      - name: units_in_progress_gpa
-        synonyms:
-          - in-progress GPA units
-        description: Units currently in progress that count toward grade point average
-        expr: PRGRS_GPA_UNIT
-        data_type: NUMBER(10,2)
-
-      - name: units_in_progress_non_gpa
-        synonyms:
-          - in-progress non-GPA units
-        description: Units currently in progress that do not count toward grade point average
-        expr: PRGRS_NON_GPA_UNIT
-        data_type: NUMBER(10,2)
-
-      - name: total_term_units
-        synonyms:
-          - total units
-          - total credit hours
-        description: The total number of units taken in the term or year
-        expr: TOT_TERM_UNIT
-        data_type: NUMBER(10,2)
-
-      - name: units_transferred
-        synonyms:
-          - transfer units
-          - transferred credits
-        description: Units transferred from another institution
-        expr: XFER_UNIT
-        data_type: NUMBER(10,2)
-
-      - name: total_earned_credit
-        synonyms:
-          - total credits earned
-          - total passed units
-          - earned credits institution
-        description: Total earned credit for the institution (cumulative units passed)
-        expr: X_TOT_PASSD_PRGRSS
-        data_type: NUMBER(10,2)
-
-      - name: total_attempted_credits
-        synonyms:
-          - total credits attempted
-          - total taken units
-          - attempted credits institution
-        description: Total attempted credits for the institution (cumulative units taken)
-        expr: X_TOT_TAKEN_PRGRSS
-        data_type: NUMBER(10,2)
-
-      - name: time_to_degree_days
-        synonyms:
-          - days to graduate
-          - TTD days
-        description: Time to degree in days from admit to degree conferral
-        expr: X_TTD_DAYS
-        data_type: NUMBER(10,0)
-
-      - name: time_to_degree_days
-        synonyms:
-          - days to graduate
-          - TTD days
-        description: Time to degree in days from admit to degree conferral
-        expr: X_TTD_DAYS
-        data_type: NUMBER(10,0)
-
-      - name: time_to_degree_years
-        synonyms:
-          - years to graduate
-          - TTD years
-        description: Time to degree in years from admit to degree conferral
-        expr: X_TTD_YEARS
-        data_type: NUMBER(10,2)
-
-      - name: student_career_number
-        synonyms:
-          - career number
-          - student career num
-        description: The student career number distinguishing multiple career records for the same student
-        expr: STDNT_CAR_NUM
-        data_type: NUMBER(5,0)
-
-      - name: units_audited
-        synonyms:
-          - audit units
-          - audited hours
-        description: Total number of credit hours taken on an audit-grading basis
-        expr: UNT_AUDIT
-        data_type: NUMBER(10,2)
-
-      - name: total_cumulative_units
-        synonyms:
-          - cumulative units
-          - total cumulative credits
-        description: Cumulative total of credit hours passed (all-time)
-        expr: TOT_CUMULATIVE
-        data_type: NUMBER(10,2)
-
-      - name: max_total_units
-        synonyms:
-          - maximum units
-          - max credit hours
-        description: Maximum number of units the student can enroll in for the term
-        expr: MAX_TOT_UNIT
-        data_type: NUMBER(10,2)
-
-      - name: min_total_units
-        synonyms:
-          - minimum units
-          - min credit hours
-        description: Minimum number of units the student can enroll in for the term
-        expr: MIN_TOT_UNIT
-        data_type: NUMBER(10,2)
-
-      - name: transfer_grade_points
-        synonyms:
-          - transfer GPA points
-          - xfer grade points
-        description: Total transfer grade points
-        expr: TRF_GRADE_POINTS
-        data_type: NUMBER(10,2)
-
-      - name: transfer_units_passed_gpa
-        synonyms:
-          - transfer units toward GPA
-          - transfer credit passed GPA
-        description: Total number of transfer credit units passed that count toward GPA
-        expr: TRF_PASSED_GPA
-        data_type: NUMBER(10,2)
-
-      - name: transfer_units_taken_gpa
-        synonyms:
-          - transfer units taken toward GPA
-        description: Total transfer credit units taken that count toward GPA
-        expr: TRF_TAKEN_GPA
-        data_type: NUMBER(10,2)
-
-      - name: cumulative_resident_terms
-        synonyms:
-          - cum resident terms
-          - total resident terms
-        description: Cumulative resident terms completed
-        expr: CUM_RESIDENT_TERMS
-        data_type: NUMBER(5,0)
-
-    filters:
-      - name: ActiveEnrollments
-        synonyms:
-          - active students
-          - enrolled students
-          - current enrollments
-          - not deleted
-        description: Filter for active enrollment records only (not deleted and enrolled flag is Y). This is the most common filter and should be applied to most enrollment queries.
-        expr: DELETE_FLG = 'N' AND X_TERM_ENROLLED_FLAG = 'Y'
-
-      - name: NewStudents
-        synonyms:
-          - first time students
-          - new admits
-          - first year
-        description: Filter for new (first-time) students only
-        expr: X_NEW_RETURNING = 'New' AND DELETE_FLG = 'N' AND X_TERM_ENROLLED_FLAG = 'Y'
-
-      - name: ReturningStudents
-        synonyms:
-          - continuing students
-          - returning enrollments
-        description: Filter for returning (continuing) students only
-        expr: X_NEW_RETURNING = 'Returning' AND DELETE_FLG = 'N' AND X_TERM_ENROLLED_FLAG = 'Y'
-
-    metrics:
-      - name: enrollment_count
-        synonyms:
-          - total enrollments
-          - enrollment records
-          - number of enrollments
-        description: Total count of enrollment records. Note this can count the same student multiple times if they are enrolled in multiple terms.
-        expr: COUNT(*)
-
-      - name: student_count
-        synonyms:
-          - unique students
-          - distinct students
-          - number of students
-          - total students
-          - how many students
-        description: Count of unique/distinct students. Use this when asking 'how many students'.
-        expr: COUNT(DISTINCT SCHOLAR_WID)
-
-      - name: average_grade_points
-        synonyms:
-          - avg gpa
-          - mean grade points
-          - average gpa
-        description: Average grade points across enrollments
-        expr: AVG(GRADE_PTS)
-
-      - name: total_grade_points
-        synonyms:
-          - sum of grade points
-          - total quality points
-        description: Sum of all grade points
-        expr: SUM(GRADE_PTS)
-
-  # ============================================================================
-  # DIMENSION: Scholar (Student)
-  # ============================================================================
-  - name: scholar
-    synonyms:
-      - students
-      - learners
-      - pupils
-    description: Student master dimension containing demographic and identification information for each student in the system.
-    base_table:
-      database: OBIA_DW
-      schema: OBIA_DW
-      table: W_SIA_SCHOLAR_D
-
-    dimensions:
-      - name: scholar_id
-        synonyms:
-          - student number
-          - student id
-          - scholar number
-          - student identifier
-        description: Source system student identification number. This is the business key visible to end users.
-        expr: SCHOLAR_ID
-        data_type: VARCHAR2(50)
-
-      - name: row_wid
-        description: Warehouse surrogate key for the scholar dimension (primary key)
-        expr: ROW_WID
-        data_type: NUMBER(18,0)
-
-      - name: chicago_id
-        synonyms:
-          - uchicago id
-          - campus id
-          - chicago identifier
-        description: University of Chicago campus ID for the student
-        expr: X_CHICAGO_ID
-        data_type: VARCHAR2(20)
-
-      - name: uchicago_email
-        synonyms:
-          - student email
-          - university email
-          - uchi email
-        description: UChicago institutional email address for the student
-        expr: X_UCHI_EMAIL
-        data_type: VARCHAR2(100)
-
-      - name: gender_code
-        synonyms:
-          - gender
-          - sex
-        description: Source system gender code for the student
-        expr: GENDER_CODE
-        data_type: VARCHAR2(20)
-
-      - name: date_of_birth
-        synonyms:
-          - birth date
-          - DOB
-          - birthday
-        description: Student date of birth
-        expr: BIRTH_DT
-        data_type: DATE
-
-      - name: age
-        synonyms:
-          - student age
-          - years old
-        description: Current age of the student in years
-        expr: X_AGE
-        data_type: NUMBER(5,0)
-
-      - name: ferpa_flag
-        synonyms:
-          - FERPA
-          - privacy flag
-          - ferpa restriction
-        description: Flag indicating if student has a FERPA privacy restriction (Y/N)
-        expr: FERPA_FLG
-        data_type: VARCHAR2(1)
-        sample_values:
-          - Y
-          - N
-
-      - name: athlete_flag
-        synonyms:
-          - athlete
-          - student athlete
-        description: Flag indicating if the student is a registered athlete (Y/N)
-        expr: ATHLETE_FLAG
-        data_type: VARCHAR2(1)
-        sample_values:
-          - Y
-          - N
-
-      - name: urm_flag
-        synonyms:
-          - underrepresented minority
-          - URM
-          - minority flag
-        description: Flag indicating if the student is an underrepresented minority (Y/N)
-        expr: X_URM_FLAG
-        data_type: VARCHAR2(1)
-        sample_values:
-          - Y
-          - N
-
-      - name: most_recent_cumulative_gpa
-        synonyms:
-          - latest cum GPA
-          - current cumulative GPA
-          - most recent GPA
-        description: Most recent cumulative GPA across all academic careers (stored as VARCHAR2 — apply safe cast when aggregating)
-        expr: X_MOST_RECENT_CUMGPA
-        data_type: VARCHAR2(10)
-
-      - name: most_recent_term
-        synonyms:
-          - latest term
-          - last enrolled term
-        description: Term code of the student's most recent enrollment
-        expr: X_MOST_RECENT_TERM
-        data_type: VARCHAR2(20)
-
-    facts: []
-    time_dimensions: []
-    filters: []
-    metrics: []
-
-  # ============================================================================
-  # DIMENSION: Term
-  # ============================================================================
-  - name: term
-    synonyms:
-      - academic term
-      - semester
-      - quarter
-      - session
-    description: Academic term dimension containing term codes, descriptions, and academic year information. Represents the time period when courses are offered.
-    base_table:
-      database: OBIA_DW
-      schema: OBIA_DW
-      table: W_SIA_TERM_D
-
-    dimensions:
-      - name: term_code
-        synonyms:
-          - term
-          - term id
-          - source term code
-        description: Source system term code (e.g., 20263 for Fall 2026)
-        expr: TERM_CODE
-        data_type: VARCHAR2(20)
-        sample_values:
-          - '20263'
-          - '20261'
-          - '20252'
-
-      - name: term_description
-        synonyms:
-          - term name
-          - semester name
-        description: Human-readable term description retrieved from lookup table
-        expr: TERM_CODE
-        data_type: VARCHAR2(100)
-        sample_values:
-          - Fall 2026
-          - Spring 2026
-          - Summer 2025
-
-      - name: academic_year
-        synonyms:
-          - year
-          - acad year
-          - fiscal year
-        description: Academic year for the term (e.g., 2026)
-        expr: ACAD_YR
-        data_type: VARCHAR2(4)
-        sample_values:
-          - '2026'
-          - '2025'
-          - '2024'
-
-      - name: institution_code
-        synonyms:
-          - institution
-          - campus code
-        description: Institution or campus code for the term
-        expr: INSTITUTION_CODE
-        data_type: VARCHAR2(20)
-
-      - name: row_wid
-        description: Warehouse surrogate key for the term dimension (primary key)
-        expr: ROW_WID
-        data_type: NUMBER(18,0)
-
-      - name: current_flag
-        synonyms:
-          - is current term
-          - active term flag
-        description: Flag indicating if this is the current active term (Y/N)
-        expr: CURRENT_FLG
-        data_type: VARCHAR2(1)
-        sample_values:
-          - Y
-          - N
-
-      - name: term_category_code
-        synonyms:
-          - term type
-          - semester type
-        description: Code identifying the term category (e.g., Fall, Spring, Summer)
-        expr: TERM_CTGRY_CODE
-        data_type: VARCHAR2(20)
-
-      - name: academic_career_code
-        synonyms:
-          - term career
-          - career for term
-        description: Academic career code associated with the term
-        expr: ACAD_CAR_CODE
-        data_type: VARCHAR2(20)
-
-    time_dimensions:
-      - name: term_begin_date
-        synonyms:
-          - term start date
-          - semester start
-        description: Date on which the term begins
-        expr: TERM_BEGIN_DT
-        data_type: DATE
-
-      - name: term_end_date
-        synonyms:
-          - term end
-          - semester end date
-        description: Date on which the term ends
-        expr: TERM_END_DT
-        data_type: DATE
-
-      - name: sixty_pct_date
-        synonyms:
-          - 60 percent date
-          - census date
-        description: Date representing the sixty percent point of the term (used for financial aid)
-        expr: SIXTY_PCT_DT
-        data_type: DATE
-
-    facts: []
-
-    filters:
-      - name: CurrentYear
-        synonyms:
-          - this year
-          - current academic year
-        description: Filter for current academic year (2026)
-        expr: ACAD_YR = '2026'
-
-      - name: LastYear
-        synonyms:
-          - previous year
-          - prior academic year
-        description: Filter for previous academic year (2025)
-        expr: ACAD_YR = '2025'
-
-    metrics: []
-
-  # ============================================================================
-  # DIMENSION: Academic Career
-  # ============================================================================
-  - name: academic_career
-    synonyms:
-      - career
-      - academic level
-      - degree level
-    description: Academic career dimension indicating the level of study (Undergraduate, Graduate, Professional, etc.)
-    base_table:
-      database: OBIA_DW
-      schema: OBIA_DW
-      table: W_SIA_ACAD_CAR_D
-
-    dimensions:
-      - name: academic_career_code
-        synonyms:
-          - career code
-        description: Source system academic career code
-        expr: ACAD_CAR_CODE
-        data_type: VARCHAR2(20)
-        sample_values:
-          - UGRD
-          - GRAD
-          - PROF
-
-      - name: academic_career_description
-        synonyms:
-          - career name
-          - academic career
-          - source academic career
-        description: Human-readable academic career description (Undergraduate, Graduate, Professional)
-        expr: ACAD_CAR_CODE
-        data_type: VARCHAR2(100)
-        sample_values:
-          - Undergraduate
-          - Graduate
-          - Professional
-
-      - name: row_wid
-        description: Warehouse surrogate key (primary key)
-        expr: ROW_WID
-        data_type: NUMBER(18,0)
-
-    time_dimensions: []
-    facts: []
-    filters: []
-    metrics: []
-
-  # ============================================================================
-  # DIMENSION: Academic Load
-  # ============================================================================
-  - name: academic_load
-    synonyms:
-      - load
-      - enrollment intensity
-      - credit load
-    description: Academic load dimension indicating whether a student is enrolled Full-time, Part-time, Three-Quarter Time, or Half-time. Stored in W_XACT_TYPE_D with W_XACT_CODE filter.
-    base_table:
-      database: OBIA_DW
-      schema: OBIA_DW
-      table: W_XACT_TYPE_D
-
-    dimensions:
-      - name: academic_load_code
-        synonyms:
-          - load code
-        description: Source system academic load code
-        expr: XACT_TYPE_CODE
-        data_type: VARCHAR2(20)
-        sample_values:
-          - FT
-          - PT
-          - 3QT
-          - HT
-
-      - name: academic_load_description
-        synonyms:
-          - load status
-          - load description
-          - academic load
-          - source academic load
-        description: Human-readable academic load description (Full-time, Part-time, etc.)
-        expr: XACT_TYPE_CODE
-        data_type: VARCHAR2(100)
-        sample_values:
-          - Full-time
-          - Part-time
-          - Three-Quarter Time
-          - Half-time
-
-      - name: row_wid
-        description: Warehouse surrogate key (primary key)
-        expr: ROW_WID
-        data_type: NUMBER(18,0)
-
-    time_dimensions: []
-    facts: []
-
-    filters:
-      - name: AcademicLoadRecordsOnly
-        description: CRITICAL - Always use this filter when querying academic_load table. W_XACT_TYPE_D stores multiple dimension types and must be filtered by W_XACT_CODE.
-        expr: W_XACT_CODE = 'SIA_ACADEMIC_LOAD_CODE'
-
-    metrics: []
-
-  # ============================================================================
-  # DIMENSION: Academic Group
-  # ============================================================================
-  - name: academic_group
-    synonyms:
-      - group
-      - academic grouping
-    description: Academic group classification dimension. Stored in W_XACT_TYPE_D with W_XACT_CODE filter.
-    base_table:
-      database: OBIA_DW
-      schema: OBIA_DW
-      table: W_XACT_TYPE_D
-
-    dimensions:
-      - name: academic_group_code
-        synonyms:
-          - group code
-        description: Source system academic group code
-        expr: XACT_TYPE_CODE
-        data_type: VARCHAR2(20)
-
-      - name: academic_group_description
-        synonyms:
-          - group name
-          - academic group
-          - source academic group
-        description: Human-readable academic group description
-        expr: XACT_TYPE_CODE
-        data_type: VARCHAR2(100)
-
-      - name: row_wid
-        description: Warehouse surrogate key (primary key)
-        expr: ROW_WID
-        data_type: NUMBER(18,0)
-
-    time_dimensions: []
-    facts: []
-
-    filters:
-      - name: AcademicGroupRecordsOnly
-        description: CRITICAL - Always use this filter when querying academic_group table
-        expr: W_XACT_CODE = 'SIA_ACADEMIC_GROUP_CODE'
-
-    metrics: []
-
-  # ============================================================================
-  # DIMENSION: Academic Level
-  # ============================================================================
-  - name: academic_level
-    synonyms:
-      - level
-      - class level
-      - year in school
-    description: Academic level dimension indicating student's year (Freshman, Sophomore, Junior, Senior, Graduate). Represents level at the START of the term. Stored in W_XACT_TYPE_D with W_XACT_CODE filter.
-    base_table:
-      database: OBIA_DW
-      schema: OBIA_DW
-      table: W_XACT_TYPE_D
-
-    dimensions:
-      - name: academic_level_code
-        synonyms:
-          - level code
-        description: Source system academic level code
-        expr: XACT_TYPE_CODE
-        data_type: VARCHAR2(20)
-        sample_values:
-          - FR
-          - SO
-          - JR
-          - SR
-          - GR
-
-      - name: academic_level_description
-        synonyms:
-          - level name
-          - class level
-          - academic level
-          - source academic level
-        description: Human-readable academic level description (Freshman, Sophomore, Junior, Senior, Graduate)
-        expr: XACT_TYPE_CODE
-        data_type: VARCHAR2(100)
-        sample_values:
-          - Freshman
-          - Sophomore
-          - Junior
-          - Senior
-          - Graduate
-
-      - name: row_wid
-        description: Warehouse surrogate key (primary key)
-        expr: ROW_WID
-        data_type: NUMBER(18,0)
-
-    time_dimensions: []
-    facts: []
-
-    filters:
-      - name: AcademicLevelRecordsOnly
-        description: CRITICAL - Always use this filter when querying academic_level table
-        expr: W_XACT_CODE = 'SIA_ACADEMIC_LEVEL_CODE'
-
-    metrics: []
-
-  # ============================================================================
-  # DIMENSION: Academic Organization
-  # ============================================================================
-  - name: academic_organization
-    synonyms:
-      - organization
-      - org
-      - academic unit
-      - department
-      - school
-      - college
-    description: Academic organizational unit dimension (School, College, Department, Division)
-    base_table:
-      database: OBIA_DW
-      schema: OBIA_DW
-      table: W_SIA_ACAD_ORG_D
-
-    dimensions:
-      - name: academic_org_code
-        synonyms:
-          - org code
-          - department code
-        description: Source system academic organization code
-        expr: ACAD_ORG_CODE
-        data_type: VARCHAR2(20)
-
-      - name: academic_org_description
-        synonyms:
-          - org name
-          - department name
-          - academic organization
-          - source academic organization
-        description: Human-readable academic organization description
-        expr: ACAD_ORG_CODE
-        data_type: VARCHAR2(100)
-
-      - name: row_wid
-        description: Warehouse surrogate key (primary key)
-        expr: ROW_WID
-        data_type: NUMBER(18,0)
-
-    time_dimensions: []
-    facts: []
-    filters: []
-    metrics: []
-
-  # ============================================================================
-  # DIMENSION: Academic Program
-  # ============================================================================
-  - name: academic_program
-    synonyms:
-      - program
-      - degree program
-      - academic degree
-    description: Academic program dimension representing the degree program (e.g., Bachelor of Arts, Master of Science)
-    base_table:
-      database: OBIA_DW
-      schema: OBIA_DW
-      table: W_SIA_ACAD_PROG_D
-
-    dimensions:
-      - name: academic_program_code
-        synonyms:
-          - program code
-        description: Source system academic program code
-        expr: ACAD_PROG_CODE
-        data_type: VARCHAR2(20)
-
-      - name: academic_program_description
-        synonyms:
-          - program name
-          - degree name
-          - academic program
-          - source academic program
-        description: Human-readable academic program description
-        expr: ACAD_PROG_CODE
-        data_type: VARCHAR2(100)
-
-      - name: row_wid
-        description: Warehouse surrogate key (primary key)
-        expr: ROW_WID
-        data_type: NUMBER(18,0)
-
-      - name: cip_code
-        synonyms:
-          - classification of instructional programs
-          - CIP
-          - program field of study code
-        description: CIP code for the academic program
-        expr: CIP_CODE
-        data_type: VARCHAR2(20)
-
-      - name: hegis_code
-        synonyms:
-          - Higher Education General Information Survey
-          - HEGIS
-        description: Higher Education General Information Survey (HEGIS) code for the academic program
-        expr: HEGIS_CODE
-        data_type: VARCHAR2(20)
-
-      - name: residency_required_flag
-        synonyms:
-          - residency requirement
-          - residency flag
-        description: Flag indicating if residency is required for this academic program (Y/N)
-        expr: RES_REQ_FLG
-        data_type: VARCHAR2(1)
-        sample_values:
-          - Y
-          - N
-
-    time_dimensions: []
-    facts:
-      - name: normal_completion_years
-        synonyms:
-          - program length
-          - years to complete
-          - completion time
-        description: Normal completion time for the academic program in years
-        expr: NORM_CMPLTN_YR_NUM
-        data_type: NUMBER(5,2)
-
-    filters: []
-    metrics: []
-
-  # ============================================================================
-  # DIMENSION: Academic Plan (Majors/Minors)
-  # ============================================================================
-  - name: academic_plan
-    synonyms:
-      - plan
-      - major
-      - minor
-      - concentration
-    description: Academic plan dimension representing majors and minors. Students can have up to 4 majors and 3 minors. Use this for major/minor analysis.
-    base_table:
-      database: OBIA_DW
-      schema: OBIA_DW
-      table: W_SIA_ACAD_PLAN_D
-
-    dimensions:
-      - name: academic_plan_code
-        synonyms:
-          - plan code
-          - major code
-          - minor code
-        description: Source system academic plan code
-        expr: ACAD_PLAN_CODE
-        data_type: VARCHAR2(20)
-
-      - name: academic_plan_description
-        synonyms:
-          - plan name
-          - major name
-          - minor name
-          - academic plan
-          - source academic plan
-        description: Human-readable academic plan description (major or minor name)
-        expr: ACAD_PLAN_CODE
-        data_type: VARCHAR2(100)
-
-      - name: row_wid
-        description: Warehouse surrogate key (primary key)
-        expr: ROW_WID
-        data_type: NUMBER(18,0)
-
-      - name: cip_code
-        synonyms:
-          - classification of instructional programs
-          - CIP
-          - field of study code
-        description: Classification of Instructional Programs (CIP) code for the academic plan
-        expr: X_CIP_CODE
-        data_type: VARCHAR2(20)
-
-      - name: academic_status
-        synonyms:
-          - plan academic status
-          - program status code
-        description: Academic status code for the academic plan
-        expr: X_ACAD_STATUS
-        data_type: VARCHAR2(20)
-
-      - name: degree_status
-        synonyms:
-          - degree completion status
-          - plan degree status
-        description: Degree status code for the academic plan
-        expr: X_DEG_STATUS
-        data_type: VARCHAR2(20)
-
-      - name: academic_plan_degree
-        synonyms:
-          - degree type
-          - plan degree
-          - degree awarded
-        description: Degree associated with the academic plan (e.g., BA, BS, MS, PhD)
-        expr: X_DEGREE
-        data_type: VARCHAR2(20)
-
-      - name: study_field_code
-        synonyms:
-          - field of study
-          - study field
-        description: The identification code of the field of study for the academic plan
-        expr: STUDY_FLD_CODE
-        data_type: VARCHAR2(20)
-
-      - name: academic_plan_type_code
-        synonyms:
-          - plan type
-          - plan type code
-        description: Code for the type of academic plan (e.g., MAJ = Major, MIN = Minor)
-        expr: ACAD_PLAN_TYPE_CODE
-        data_type: VARCHAR2(20)
-
-      - name: transcript_description
-        synonyms:
-          - transcript name
-          - plan transcript description
-        description: Description of the academic plan as it appears on the transcript
-        expr: X_TRNSCR_DESCR
-        data_type: VARCHAR2(100)
-
-    time_dimensions: []
-    facts: []
-    filters: []
-    metrics: []
-
-  # ============================================================================
-  # DIMENSION: Academic Sub Plan
-  # ============================================================================
-  - name: academic_sub_plan
-    synonyms:
-      - sub plan
-      - subplan
-      - specialization
-      - concentration
-      - track
-    description: Academic sub-plan dimension representing specializations or concentrations within a major. Students can have up to 4 sub-plans.
-    base_table:
-      database: OBIA_DW
-      schema: OBIA_DW
-      table: W_SIA_ACAD_SPLAN_D
-
-    dimensions:
-      - name: academic_sub_plan_code
-        synonyms:
-          - sub plan code
-          - concentration code
-        description: Source system academic sub-plan code
-        expr: ACAD_SPLAN_CODE
-        data_type: VARCHAR2(20)
-
-      - name: academic_sub_plan_description
-        synonyms:
-          - sub plan name
-          - concentration name
-          - academic sub plan
-          - source academic sub plan
-        description: Human-readable academic sub-plan description
-        expr: ACAD_SPLAN_CODE
-        data_type: VARCHAR2(100)
-
-      - name: row_wid
-        description: Warehouse surrogate key (primary key)
-        expr: ROW_WID
-        data_type: NUMBER(18,0)
-
-    time_dimensions: []
-    facts: []
-    filters: []
-    metrics: []
-
-  # ============================================================================
-  # DIMENSION: Program Status
-  # ============================================================================
-  - name: program_status
-    synonyms:
-      - status
-      - enrollment status
-      - program state
-    description: Program enrollment status dimension (Active, Inactive, Withdrawn, Completed, etc.)
-    base_table:
-      database: OBIA_DW
-      schema: OBIA_DW
-      table: W_STATUS_D
-
-    dimensions:
-      - name: program_status_code
-        synonyms:
-          - status code
-          - source program status code
-        description: Source system program status code
-        expr: STATUS_CODE
-        data_type: VARCHAR2(20)
-        sample_values:
-          - AC
-          - IN
-          - WD
-          - CM
-
-      - name: program_status_description
-        synonyms:
-          - status name
-          - program status
-        description: Human-readable program status description
-        expr: STATUS_CODE
-        data_type: VARCHAR2(100)
-        sample_values:
-          - Active
-          - Inactive
-          - Withdrawn
-          - Completed
-
-      - name: row_wid
-        description: Warehouse surrogate key (primary key)
-        expr: ROW_WID
-        data_type: NUMBER(18,0)
-
-    time_dimensions: []
-    facts: []
-    filters: []
-    metrics: []
-
-  # ============================================================================
-  # DIMENSION: Admit Type (role-playing W_XACT_TYPE_D)
-  # ============================================================================
-  - name: admit_type
-    synonyms:
-      - admission type
-      - admit category
-      - how admitted
-    description: Admit type dimension indicating how the student was admitted (New Freshman, Transfer, Re-entry, etc.). Stored in W_XACT_TYPE_D with W_XACT_CODE filter.
-    base_table:
-      database: OBIA_DW
-      schema: OBIA_DW
-      table: W_XACT_TYPE_D
-
-    dimensions:
-      - name: admit_type_code
-        synonyms:
-          - admit code
-        description: Source system admit type code
-        expr: XACT_TYPE_CODE
-        data_type: VARCHAR2(20)
-
-      - name: admit_type_description
-        synonyms:
-          - admit type name
-          - admission type
-          - source admit type
-        description: Human-readable admit type description. Join W_DOMAIN_MEMBER_LKP_TL on DOMAIN_CODE='SIA_ADMIT_TYPE_CODE' and select DOMAIN_MEMBER_NAME.
-        expr: XACT_TYPE_CODE
-        data_type: VARCHAR2(100)
-
-      - name: row_wid
-        description: Warehouse surrogate key (primary key)
-        expr: ROW_WID
-        data_type: NUMBER(18,0)
-
-    time_dimensions: []
-    facts: []
-
-    filters:
-      - name: AdmitTypeRecordsOnly
-        description: CRITICAL - Always use this filter when querying admit_type table
-        expr: W_XACT_CODE = 'SIA_ADMIT_TYPE_CODE'
-
-    metrics: []
-
-  # ============================================================================
-  # DIMENSION: Program Action Reason (role-playing W_XACT_TYPE_D)
-  # ============================================================================
-  - name: program_action_reason
-    synonyms:
-      - action reason
-      - program reason
-      - enrollment action reason
-    description: Program action reason dimension indicating why a program action occurred (e.g., withdrawal reason, leave reason). Stored in W_XACT_TYPE_D with W_XACT_CODE filter.
-    base_table:
-      database: OBIA_DW
-      schema: OBIA_DW
-      table: W_XACT_TYPE_D
-
-    dimensions:
-      - name: program_action_reason_code
-        synonyms:
-          - action reason code
-          - prog action reason
-        description: Source system program action reason code
-        expr: XACT_TYPE_CODE
-        data_type: VARCHAR2(20)
-
-      - name: program_action_reason_description
-        synonyms:
-          - action reason name
-          - program action reason
-          - source program action reason
-        description: Human-readable program action reason description. Join W_DOMAIN_MEMBER_LKP_TL on DOMAIN_CODE='SIA_PROGRAMME_ACTION_REASON' and select DOMAIN_MEMBER_NAME.
-        expr: XACT_TYPE_CODE
-        data_type: VARCHAR2(100)
-
-      - name: row_wid
-        description: Warehouse surrogate key (primary key)
-        expr: ROW_WID
-        data_type: NUMBER(18,0)
-
-    time_dimensions: []
-    facts: []
-
-    filters:
-      - name: ProgramActionReasonRecordsOnly
-        description: CRITICAL - Always use this filter when querying program_action_reason table
-        expr: W_XACT_CODE = 'SIA_PROGRAMME_ACTION_REASON'
-
-    metrics: []
-
-  # ============================================================================
-  # DIMENSION: Withdraw Reason (role-playing W_XACT_TYPE_D)
-  # ============================================================================
-  - name: withdraw_reason
-    synonyms:
-      - withdrawal reason
-      - reason for withdrawal
-      - drop reason
-    description: Withdraw reason dimension indicating why a student withdrew from a program. Stored in W_XACT_TYPE_D with W_XACT_CODE filter.
-    base_table:
-      database: OBIA_DW
-      schema: OBIA_DW
-      table: W_XACT_TYPE_D
-
-    dimensions:
-      - name: withdraw_reason_code
-        synonyms:
-          - withdrawal code
-          - reason code
-        description: Source system withdraw reason code
-        expr: XACT_TYPE_CODE
-        data_type: VARCHAR2(20)
-
-      - name: withdraw_reason_description
-        synonyms:
-          - withdrawal reason name
-          - reason for withdrawal
-          - source withdraw reason
-        description: Human-readable withdraw reason description. Join W_DOMAIN_MEMBER_LKP_TL on DOMAIN_CODE='SIA_WITHDRAW_REASON_CODE' and select DOMAIN_MEMBER_NAME.
-        expr: XACT_TYPE_CODE
-        data_type: VARCHAR2(100)
-
-      - name: row_wid
-        description: Warehouse surrogate key (primary key)
-        expr: ROW_WID
-        data_type: NUMBER(18,0)
-
-    time_dimensions: []
-    facts: []
-
-    filters:
-      - name: WithdrawReasonRecordsOnly
-        description: CRITICAL - Always use this filter when querying withdraw_reason table
-        expr: W_XACT_CODE = 'SIA_WITHDRAW_REASON_CODE'
-
-    metrics: []
-
-  # ============================================================================
-  # DIMENSION: Academic Standing
-  # ============================================================================
-  - name: academic_standing
-    synonyms:
-      - standing
-      - academic status
-      - good standing
-      - probation
-    description: Academic standing dimension indicating a student's academic standing status and action (Good Standing, Probation, Dismissal, etc.)
-    base_table:
-      database: OBIA_DW
-      schema: OBIA_DW
-      table: W_SIA_ACAD_STNDNG_D
-
-    dimensions:
-      - name: academic_standing_status_code
-        synonyms:
-          - standing status code
-          - academic status code
-        description: Code identifying the academic standing status (e.g., Good Standing, Probation)
-        expr: ACAD_STNDNG_STAT_CODE
-        data_type: VARCHAR2(20)
-
-      - name: academic_standing_action_code
-        synonyms:
-          - standing action code
-          - academic action
-        description: Code identifying the academic standing action taken
-        expr: ACAD_STNDNG_ACN_CODE
-        data_type: VARCHAR2(20)
-
-      - name: row_wid
-        description: Warehouse surrogate key (primary key)
-        expr: ROW_WID
-        data_type: NUMBER(18,0)
-
-    time_dimensions: []
-    facts: []
-    filters: []
-    metrics: []
-
-# ==============================================================================
-# RELATIONSHIPS
-# ==============================================================================
-relationships:
-  - name: EnrollmentToScholar
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: SCHOLAR_WID
-        right_column: ROW_WID
-    right_table: scholar
-
-  - name: EnrollmentToTerm
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: TERM_WID
-        right_column: ROW_WID
-    right_table: term
-
-  - name: EnrollmentToAcademicCareer
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: ACAD_CAR_WID
-        right_column: ROW_WID
-    right_table: academic_career
-
-  - name: EnrollmentToAcademicGroup
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: ACAD_GRP_WID
-        right_column: ROW_WID
-    right_table: academic_group
-
-  - name: EnrollmentToAcademicLoad
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: ACAD_LOAD_WID
-        right_column: ROW_WID
-    right_table: academic_load
-
-  - name: EnrollmentToAcademicLevel
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: STRT_ACAD_LVL_WID
-        right_column: ROW_WID
-    right_table: academic_level
-
-  - name: EnrollmentToAcademicOrg
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: ACAD_ORG_WID
-        right_column: ROW_WID
-    right_table: academic_organization
-
-  - name: EnrollmentToAcademicProgram
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: PRI_ACAD_PROG_WID
-        right_column: ROW_WID
-    right_table: academic_program
-
-  - name: EnrollmentToProgramStatus
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: PROG_STAT_WID
-        right_column: ROW_WID
-    right_table: program_status
-
-  - name: EnrollmentToMajor1
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: X_MAJOR_1_WID
-        right_column: ROW_WID
-    right_table: academic_plan
-
-  - name: EnrollmentToMajor2
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: X_MAJOR_2_WID
-        right_column: ROW_WID
-    right_table: academic_plan
-
-  - name: EnrollmentToMajor3
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: X_MAJOR_3_WID
-        right_column: ROW_WID
-    right_table: academic_plan
-
-  - name: EnrollmentToMajor4
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: X_MAJOR_4_WID
-        right_column: ROW_WID
-    right_table: academic_plan
-
-  - name: EnrollmentToMinor1
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: X_MINOR_1_WID
-        right_column: ROW_WID
-    right_table: academic_plan
-
-  - name: EnrollmentToMinor2
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: X_MINOR_2_WID
-        right_column: ROW_WID
-    right_table: academic_plan
-
-  - name: EnrollmentToMinor3
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: X_MINOR_3_WID
-        right_column: ROW_WID
-    right_table: academic_plan
-
-  - name: EnrollmentToSubPlan1
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: X_SUBPLAN_1_WID
-        right_column: ROW_WID
-    right_table: academic_sub_plan
-
-  - name: EnrollmentToSubPlan2
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: X_SUBPLAN_2_WID
-        right_column: ROW_WID
-    right_table: academic_sub_plan
-
-  - name: EnrollmentToSubPlan3
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: X_SUBPLAN_3_WID
-        right_column: ROW_WID
-    right_table: academic_sub_plan
-
-  - name: EnrollmentToSubPlan4
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: X_SUBPLAN_4_WID
-        right_column: ROW_WID
-    right_table: academic_sub_plan
-
-  - name: EnrollmentToAdmitType
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: ADMIT_TYPE_WID
-        right_column: ROW_WID
-    right_table: admit_type
-
-  - name: EnrollmentToProgramActionReason
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: PROG_ACN_RSN_WID
-        right_column: ROW_WID
-    right_table: program_action_reason
-
-  - name: EnrollmentToWithdrawReason
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: WITHDRAW_REASON_WID
-        right_column: ROW_WID
-    right_table: withdraw_reason
-
-  - name: EnrollmentToAcademicStanding
-    left_table: term_enrollment_fact
-    relationship_columns:
-      - left_column: ACAD_STNDNG_WID
-        right_column: ROW_WID
-    right_table: academic_standing
-
-# ==============================================================================
-# VERIFIED QUERIES
-# ==============================================================================
+semantic_model:
+  id: semantic.student_information.term_enrollments
+  name: SIA Term Enrollments
+  version: 1.0.0
+  lifecycle_status: draft
+  model_type: subject_area
+  description: >
+    Platform-agnostic semantic contract for Student Information Analytics term
+    enrollment analysis. The logical model defines business entities, measures,
+    dimensions, policies, validation rules, and evaluation tests. Oracle 19c
+    warehouse objects are expressed only as one physical mapping.
+
+domain:
+  id: domain.student_information.term_enrollments
+  name: Student Information Analytics
+  subject_area: Term Enrollments
+  business_owner: Institutional Research
+  technical_owner: Data Warehouse Team
+  data_steward: Registrar Analytics
+  intended_users:
+    - institutional_research
+    - enrollment_management
+  data_classification:
+    classification: student_data
+    contains_pii: true
+    ferpa_sensitive: true
+
+business_glossary:
+  - id: glossary.student
+    term: student
+    definition: A distinct student/scholar represented by the canonical Student entity.
+    maps_to:
+      measure: measure.student_count
+      entity: entity.student
+    default_interpretation: active distinct student unless the user says otherwise
+  - id: glossary.enrollment
+    term: enrollment
+    definition: A student-term enrollment record.
+    maps_to:
+      measure: measure.enrollment_count
+      entity: entity.term_enrollment
+    default_filter: filter.active_enrollment
+  - id: glossary.active_enrollment
+    term: active enrollment
+    definition: Enrollment records that are not deleted and have the enrolled flag set.
+    maps_to:
+      filter: filter.active_enrollment
+  - id: glossary.current_year
+    term: current year
+    definition: Current academic year in the semantic calendar.
+    maps_to:
+      filter: filter.current_academic_year
+    clarification_policy: confirm_when_user_needs_current_snapshot
+  - id: glossary.academic_year
+    term: academic year
+    definition: Institutional academic year from the academic term dimension, not normal calendar year.
+    maps_to:
+      dimension: dimension.academic_year
+
+logical_model:
+  entities:
+    - id: entity.term_enrollment
+      name: Term Enrollment
+      type: fact
+      description: Student enrollment in an academic term.
+      grain:
+        id: grain.student_term_enrollment
+        description: One row per student per academic term enrollment record.
+        keys:
+          - entity.student
+          - entity.academic_term
+        physical_key_columns:
+          - SCHOLAR_WID
+          - TERM_WID
+        duplicate_risk: medium
+        duplicate_warning: >
+          Students can appear in multiple terms and can have multiple role-playing
+          academic plan relationships. Distinct-student measures must declare the
+          result grain.
+      default_filters:
+        - filter.active_enrollment
+      primary_measures:
+        - measure.student_count
+        - measure.enrollment_count
+      relationships:
+        - relationship.enrollment_student
+        - relationship.enrollment_term
+        - relationship.enrollment_academic_career
+        - relationship.enrollment_academic_program
+        - relationship.enrollment_academic_load
+        - relationship.enrollment_academic_level
+        - relationship.enrollment_academic_plan_roles
+
+    - id: entity.student
+      name: Student
+      type: dimension
+      description: Canonical student/scholar entity.
+      canonical_key: SCHOLAR_WID
+      privacy_level: restricted
+      pii_columns:
+        - SCHOLAR_ID
+        - EMAIL
+        - PHONE
+        - ADDRESS
+
+    - id: entity.academic_term
+      name: Academic Term
+      type: dimension
+      description: Academic calendar term and academic year.
+      canonical_key: TERM_WID
+      conformed_dimension: AcademicTerm
+
+    - id: entity.academic_career
+      name: Academic Career
+      type: dimension
+      description: Student academic career such as undergraduate or graduate.
+      canonical_key: ACAD_CAR_WID
+      conformed_dimension: AcademicCareer
+
+    - id: entity.academic_program
+      name: Academic Program
+      type: dimension
+      description: Primary academic program associated with an enrollment.
+      canonical_key: PRI_ACAD_PROG_WID
+
+    - id: entity.academic_plan
+      name: Academic Plan
+      type: role_playing_dimension
+      description: Academic plans used for major and minor roles.
+      canonical_key: ACAD_PLAN_WID
+
+  dimensions:
+    - id: dimension.academic_year
+      name: academic_year
+      label: Academic Year
+      entity: entity.academic_term
+      type: time_period
+      semantic_type: academic_year
+      allowed_for:
+        - measure.student_count
+        - measure.enrollment_count
+      default_sort: ascending
+
+    - id: dimension.term
+      name: term
+      label: Academic Term
+      entity: entity.academic_term
+      type: category
+      semantic_type: academic_term
+      clarification_required_for_current_term: true
+
+    - id: dimension.academic_career
+      name: academic_career
+      label: Academic Career
+      entity: entity.academic_career
+      type: category
+      placeholder_exclusion: true
+
+    - id: dimension.academic_program
+      name: academic_program
+      label: Academic Program
+      entity: entity.academic_program
+      type: category
+      placeholder_exclusion: true
+
+    - id: dimension.academic_load
+      name: academic_load
+      label: Academic Load
+      entity: entity.term_enrollment
+      type: category
+      lookup_rule: lookup.xact_type_discriminator
+
+    - id: dimension.new_returning_student
+      name: new_returning_student
+      label: New or Returning Student
+      entity: entity.term_enrollment
+      type: category
+      accepted_values:
+        - New
+        - Returning
+
+  measures:
+    - id: measure.student_count
+      name: student_count
+      label: Student Count
+      description: Count of distinct active students in the current result grain.
+      type: count_distinct
+      entity: entity.term_enrollment
+      expression:
+        logical: COUNT_DISTINCT(student)
+      grain: student
+      default_filters:
+        - filter.active_enrollment
+      allowed_dimensions:
+        - dimension.academic_year
+        - dimension.term
+        - dimension.academic_career
+        - dimension.academic_program
+        - dimension.academic_load
+        - dimension.new_returning_student
+      disallowed_dimensions:
+        - dimension.raw_major_slot
+      warnings:
+        - >
+          If grouped across multiple terms, a student can appear once per term.
+          Clarify whether the desired count is per period or deduplicated across
+          the whole result set.
+      format:
+        type: integer
+        decimals: 0
+        display_name: Student Count
+
+    - id: measure.enrollment_count
+      name: enrollment_count
+      label: Enrollment Count
+      description: Count of student-term enrollment records.
+      type: count
+      entity: entity.term_enrollment
+      expression:
+        logical: COUNT_RECORDS(term_enrollment)
+      grain: student_term_enrollment_record
+      default_filters:
+        - filter.active_enrollment
+      allowed_dimensions:
+        - dimension.academic_year
+        - dimension.term
+        - dimension.academic_career
+        - dimension.academic_program
+        - dimension.academic_load
+        - dimension.new_returning_student
+      warnings:
+        - This can count the same student multiple times across terms.
+      format:
+        type: integer
+        decimals: 0
+        display_name: Enrollment Count
+
+    - id: measure.average_grade_points
+      name: average_grade_points
+      label: Average Grade Points
+      description: Average grade points across enrollment records.
+      type: average
+      entity: entity.term_enrollment
+      expression:
+        logical: AVG(grade_points)
+      default_filters:
+        - filter.active_enrollment
+      privacy_warning: Aggregate only; never return individual student GPA.
+      format:
+        type: decimal
+        decimals: 2
+        range:
+          min: 0
+          max: 4
+
+  calculated_measures:
+    - id: measure.full_time_percentage
+      name: full_time_percentage
+      label: Full-Time Percentage
+      type: ratio
+      numerator:
+        measure: measure.student_count
+        filters:
+          - filter.full_time_students
+      denominator:
+        measure: measure.student_count
+      expression_template: ROUND((numerator / NULLIF(denominator, 0)) * 100, 2)
+      unit: percent
+      default_filters:
+        - filter.active_enrollment
+      format:
+        type: percent
+        decimals: 2
+
+    - id: measure.new_student_rate
+      name: new_student_rate
+      label: New Student Rate
+      type: ratio
+      numerator:
+        measure: measure.student_count
+        filters:
+          - filter.new_students
+      denominator:
+        measure: measure.student_count
+      expression_template: ROUND((numerator / NULLIF(denominator, 0)) * 100, 2)
+      unit: percent
+      default_filters:
+        - filter.active_enrollment
+      format:
+        type: percent
+        decimals: 2
+
+  filters:
+    - id: filter.active_enrollment
+      name: ActiveEnrollments
+      description: Active, non-deleted enrollment records.
+      entity: entity.term_enrollment
+      expression:
+        logical: enrollment_deleted = false AND term_enrolled = true
+
+    - id: filter.current_academic_year
+      name: CurrentAcademicYear
+      description: Current academic year in the semantic calendar.
+      expression:
+        logical: academic_year = calendar.current_academic_year
+
+    - id: filter.new_students
+      name: NewStudents
+      expression:
+        logical: new_returning_student = 'New'
+
+    - id: filter.full_time_students
+      name: FullTimeStudents
+      expression:
+        logical: academic_load = 'FULL_TIME'
+
+  relationships:
+    - id: relationship.enrollment_student
+      from_entity: entity.term_enrollment
+      to_entity: entity.student
+      cardinality: many_to_one
+      join_type_default: inner
+      trusted: true
+      role: dimension_lookup
+
+    - id: relationship.enrollment_term
+      from_entity: entity.term_enrollment
+      to_entity: entity.academic_term
+      cardinality: many_to_one
+      join_type_default: inner
+      trusted: true
+      role: time_dimension
+
+    - id: relationship.enrollment_academic_career
+      from_entity: entity.term_enrollment
+      to_entity: entity.academic_career
+      cardinality: many_to_one
+      join_type_default: left
+      trusted: true
+      role: dimension_lookup
+
+    - id: relationship.enrollment_academic_program
+      from_entity: entity.term_enrollment
+      to_entity: entity.academic_program
+      cardinality: many_to_one
+      join_type_default: left
+      trusted: true
+      role: dimension_lookup
+
+    - id: relationship.enrollment_academic_load
+      from_entity: entity.term_enrollment
+      to_entity: entity.term_enrollment
+      cardinality: many_to_one
+      join_type_default: left
+      trusted: true
+      role: coded_lookup
+      lookup_rule: lookup.xact_type_discriminator
+
+    - id: relationship.enrollment_academic_level
+      from_entity: entity.term_enrollment
+      to_entity: entity.term_enrollment
+      cardinality: many_to_one
+      join_type_default: left
+      trusted: true
+      role: coded_lookup
+      lookup_rule: lookup.xact_type_discriminator
+
+    - id: relationship.enrollment_academic_plan_roles
+      from_entity: entity.term_enrollment
+      to_entity: entity.academic_plan
+      cardinality: many_to_many
+      join_type_default: left
+      trusted: true
+      role: role_playing_dimension
+      grain_risk: many_to_many_role_playing_dimension
+
+  role_playing_dimensions:
+    - id: role_dimension.majors
+      base_entity: entity.academic_plan
+      roles:
+        - name: major_1
+          logical_fk: major_1_plan
+        - name: major_2
+          logical_fk: major_2_plan
+        - name: major_3
+          logical_fk: major_3_plan
+        - name: major_4
+          logical_fk: major_4_plan
+      default_handling: union_all
+      deduplication_key:
+        - student
+        - academic_term
+        - academic_plan
+
+    - id: role_dimension.minors
+      base_entity: entity.academic_plan
+      roles:
+        - name: minor_1
+          logical_fk: minor_1_plan
+        - name: minor_2
+          logical_fk: minor_2_plan
+        - name: minor_3
+          logical_fk: minor_3_plan
+      default_handling: union_all
+      deduplication_key:
+        - student
+        - academic_term
+        - academic_plan
+
+semantic_rules:
+  default_query_policy:
+    always_apply_filters:
+      - entity: entity.term_enrollment
+        filter: filter.active_enrollment
+        unless_user_says:
+          - include deleted
+          - include inactive enrollments
+          - all records
+    placeholder_exclusions:
+      values:
+        - __NOT_APPLICABLE__
+        - __UNASSIGNED__
+      apply_to_dimensions:
+        - dimension.academic_career
+        - dimension.academic_program
+    default_row_limit: 100
+
+  calendar:
+    id: calendar.academic
+    type: academic
+    default_period: academic_year
+    current_academic_year: 2026
+    current_term_policy: ask_user
+    term_code_rules:
+      spring:
+        suffix: '1'
+      summer:
+        suffix: '2'
+      fall:
+        suffix: '3'
+    default_comparison:
+      year_over_year: fall_to_fall
+
+  intent_routing:
+    supported_intents:
+      - aggregate_count
+      - trend
+      - breakdown
+      - year_over_year_comparison
+      - ranking
+      - distribution
+    unsupported_intents:
+      - individual_student_lookup
+      - student_pii_extraction
+    clarification_required:
+      - current_term
+      - active vs historical enrollment
+      - student count vs enrollment record count
+
+  visualization_guidance:
+    mode: llm_decides
+    directive: >
+      Choose a visualization only when it improves understanding of the result.
+      Prefer simple tables when a chart would add noise. When charting helps,
+      choose the chart type based on the data shape and explain the reason.
+
+physical_mappings:
+  - id: physical.oracle19c.obia_dw
+    platform:
+      type: oracle
+      version: 19c
+      dialect: oracle
+      default_schema: OBIA_DW
+      fully_qualified_names_required: true
+    objects:
+      - logical_entity: entity.term_enrollment
+        object_type: table
+        fully_qualified_name: OBIA_DW.W_SIA_TERM_ENRLMT_F
+        alias: f
+        columns:
+          student: SCHOLAR_WID
+          academic_term: TERM_WID
+          academic_career: ACAD_CAR_WID
+          academic_program: PRI_ACAD_PROG_WID
+          academic_load: ACAD_LOAD_WID
+          academic_level_start: STRT_ACAD_LVL_WID
+          enrollment_deleted: DELETE_FLG
+          term_enrolled: X_TERM_ENROLLED_FLAG
+          new_returning_student: X_NEW_RETURNING
+          grade_points: GRADE_PTS
+          major_1_plan: X_MAJOR_1_WID
+          major_2_plan: X_MAJOR_2_WID
+          major_3_plan: X_MAJOR_3_WID
+          major_4_plan: X_MAJOR_4_WID
+          minor_1_plan: X_MINOR_1_WID
+          minor_2_plan: X_MINOR_2_WID
+          minor_3_plan: X_MINOR_3_WID
+        optimizer:
+          partition_columns:
+            - TERM_WID
+          indexed_columns:
+            - SCHOLAR_WID
+            - TERM_WID
+            - ACAD_CAR_WID
+          notes:
+            - Apply DELETE_FLG and X_TERM_ENROLLED_FLAG early.
+
+      - logical_entity: entity.student
+        object_type: table
+        fully_qualified_name: OBIA_DW.W_SIA_SCHOLAR_D
+        alias: s
+        primary_key:
+          - ROW_WID
+        business_keys:
+          - SCHOLAR_ID
+
+      - logical_entity: entity.academic_term
+        object_type: table
+        fully_qualified_name: OBIA_DW.W_SIA_TERM_D
+        alias: t
+        primary_key:
+          - ROW_WID
+        columns:
+          academic_year: ACAD_YR
+          term_code: TERM_CODE
+
+      - logical_entity: entity.academic_career
+        object_type: table
+        fully_qualified_name: OBIA_DW.W_SIA_ACAD_CAR_D
+        alias: ac
+        primary_key:
+          - ROW_WID
+        columns:
+          code: ACAD_CAR_CODE
+
+      - logical_entity: entity.academic_program
+        object_type: table
+        fully_qualified_name: OBIA_DW.W_SIA_ACAD_PROG_D
+        alias: prog
+        primary_key:
+          - ROW_WID
+        columns:
+          code: ACAD_PROG_CODE
+
+      - logical_entity: entity.academic_plan
+        object_type: table
+        fully_qualified_name: OBIA_DW.W_SIA_ACAD_PLAN_D
+        alias: plan
+        primary_key:
+          - ROW_WID
+        columns:
+          code: ACAD_PLAN_CODE
+
+    joins:
+      - relationship: relationship.enrollment_student
+        left: f.SCHOLAR_WID
+        right: s.ROW_WID
+        join_type: inner
+      - relationship: relationship.enrollment_term
+        left: f.TERM_WID
+        right: t.ROW_WID
+        join_type: inner
+      - relationship: relationship.enrollment_academic_career
+        left: f.ACAD_CAR_WID
+        right: ac.ROW_WID
+        join_type: left
+      - relationship: relationship.enrollment_academic_program
+        left: f.PRI_ACAD_PROG_WID
+        right: prog.ROW_WID
+        join_type: left
+
+    measure_expressions:
+      measure.student_count: COUNT(DISTINCT f.SCHOLAR_WID)
+      measure.enrollment_count: COUNT(*)
+      measure.average_grade_points: ROUND(AVG(f.GRADE_PTS), 2)
+
+    filter_expressions:
+      filter.active_enrollment: f.DELETE_FLG = 'N' AND f.X_TERM_ENROLLED_FLAG = 'Y'
+      filter.current_academic_year: t.ACAD_YR = '2026'
+      filter.new_students: f.X_NEW_RETURNING = 'New'
+
+    lookup_rules:
+      - id: lookup.domain_member
+        table: OBIA_DW.W_DOMAIN_MEMBER_LKP_TL
+        code_column: DOMAIN_MEMBER_CODE
+        description_column: DOMAIN_MEMBER_NAME
+        language_filter:
+          column: LANGUAGE_CODE
+          value: US
+        domain_mappings:
+          term:
+            domain_code: SIA_TERM_CODE
+            source_column: TERM_CODE
+          academic_career:
+            domain_code: SIA_ACAD_CAR_CODE
+            source_column: ACAD_CAR_CODE
+          academic_program:
+            domain_code: SIA_ACAD_PROG_CODE
+            source_column: ACAD_PROG_CODE
+
+      - id: lookup.xact_type_discriminator
+        table: OBIA_DW.W_XACT_TYPE_D
+        required_discriminator_column: W_XACT_CODE
+        columns:
+          code: XACT_TYPE_CODE
+          key: ROW_WID
+        dimension_mappings:
+          academic_load:
+            fk_column: ACAD_LOAD_WID
+            w_xact_code: SIA_ACADEMIC_LOAD_CODE
+          academic_level:
+            fk_column: STRT_ACAD_LVL_WID
+            w_xact_code: SIA_ACADEMIC_LEVEL_CODE
+
+governance:
+  security:
+    classification: student_data
+    contains_pii: true
+    ferpa_sensitive: true
+    allowed_roles:
+      - institutional_research
+      - enrollment_management
+    prohibited_requests:
+      - individual student records
+      - identifiable student GPA
+      - student-level academic standing
+    restricted_logical_fields:
+      - student_name
+      - student_email
+      - date_of_birth
+      - scholar_id
+
+  privacy_controls:
+    aggregate_only_by_default: true
+    small_cell_suppression:
+      enabled: true
+      threshold: 10
+      action: suppress_or_bucket
+      applies_to_measures:
+        - measure.student_count
+        - measure.enrollment_count
+
+  data_quality:
+    required_filters:
+      - filter.active_enrollment
+    not_null:
+      - student
+      - academic_term
+    accepted_values:
+      term_enrolled:
+        - true
+        - false
+      enrollment_deleted:
+        - true
+        - false
+    invalid_placeholder_values:
+      - __NOT_APPLICABLE__
+      - __UNASSIGNED__
+
+validation:
+  sql_generation:
+    required:
+      - select_only
+      - no_select_star
+      - fully_qualified_table_names
+      - active_enrollment_filter
+      - row_limit
+      - oracle_fetch_first
+    forbidden_patterns:
+      - ' LIMIT '
+      - 'SELECT *'
+    required_patterns:
+      - OBIA_DW.
+    dialect_rules:
+      top_n: FETCH FIRST n ROWS ONLY
+      current_date: SYSDATE
+    special_rules:
+      - table: OBIA_DW.W_XACT_TYPE_D
+        requires: W_XACT_CODE
+
+  evaluation_tests:
+    - id: eval.reject_individual_student_lookup
+      question: Show me John Smith's GPA
+      expected_action: reject
+      reason: FERPA-sensitive individual student data
+    - id: eval.clarify_current_term
+      question: How many students are enrolled this term?
+      expected_action: clarify
+      clarification: Ask whether Fall, Spring, or Summer.
+    - id: eval.active_enrollment_filter_required
+      question: Count enrollments by career
+      expected_sql_must_include:
+        - f.DELETE_FLG = 'N'
+        - f.X_TERM_ENROLLED_FLAG = 'Y'
+    - id: eval.reject_select_star
+      generated_sql: SELECT * FROM OBIA_DW.W_SIA_TERM_ENRLMT_F
+      expected_validation: reject
+      reason: SELECT * is not allowed.
+
+interoperability:
+  conformed_dimensions:
+    - id: conformed.student
+      entity: entity.student
+      canonical_entity: Student
+      canonical_key: SCHOLAR_WID
+      shared_with:
+        - financial_aid
+        - student_billing
+        - admissions
+        - graduation
+    - id: conformed.academic_term
+      entity: entity.academic_term
+      canonical_entity: AcademicTerm
+      canonical_key: TERM_WID
+      shared_with:
+        - course_enrollments
+        - student_financials
+        - retention
+
+  cross_domain_paths:
+    - id: cross_domain.enrollment_to_student_financials_by_student_term
+      domains:
+        - term_enrollments
+        - student_financials
+      shared_dimensions:
+        - entity.student
+        - entity.academic_term
+      allowed_measures:
+        - measure.student_count
+        - measure.tuition_revenue
+        - measure.balance_due
+      grain_warning: >
+        Enrollment is student-term grain. Student financials may be transaction
+        grain. Aggregate financials to student-term before joining to enrollment.
+
+lineage:
+  source_system: PeopleSoft Campus Solutions
+  source_module: Student Records
+  warehouse_package: OBIA Student Information Analytics
+  refresh_frequency: daily
+  last_certified_at: '2026-05-01'
+
+freshness:
+  refresh_frequency: daily
+  expected_available_by: 07:00 America/Chicago
+  freshness_column: W_UPDATE_DT
+  stale_after_hours: 36
+
+presentation:
+  default_result_mode: table_and_summary
+  visualization_guidance:
+    decision_owner: llm
+    directive: >
+      Decide whether a visualization improves understanding. Use no chart when
+      a table is clearer. When a chart helps, choose an appropriate simple chart
+      from the result shape and explain why.
+  report_sections:
+    - question
+    - answer_summary
+    - visualization_if_helpful
+    - result_table
+    - metric_definitions
+    - validated_sql
+    - caveats
+
 verified_queries:
-  - name: total_enrollment_current_year
+  - id: verified.total_enrollment_current_year
     question: What is the total enrollment for the current academic year?
-    sql: |-
+    measures:
+      - measure.student_count
+      - measure.enrollment_count
+    dimensions: []
+    filters:
+      - filter.active_enrollment
+      - filter.current_academic_year
+    sql_oracle19c: |-
       SELECT
-        COUNT(DISTINCT f.SCHOLAR_WID) as student_count,
-        COUNT(*) as enrollment_count
+        COUNT(DISTINCT f.SCHOLAR_WID) AS student_count,
+        COUNT(*) AS enrollment_count
       FROM OBIA_DW.W_SIA_TERM_ENRLMT_F f
       JOIN OBIA_DW.W_SIA_TERM_D t ON f.TERM_WID = t.ROW_WID
       WHERE f.DELETE_FLG = 'N'
         AND f.X_TERM_ENROLLED_FLAG = 'Y'
         AND t.ACAD_YR = '2026'
-    use_as_onboarding_question: true
+      FETCH FIRST 100 ROWS ONLY
     verified_by: System
-    verified_at: 1740441600
+    verified_at: '2026-05-01'
 
-  - name: new_vs_returning_breakdown
-    question: How many new versus returning students are enrolled this year?
-    sql: |-
+  - id: verified.student_count_by_academic_year
+    question: Get student enrollment count by academic year for 2024 through 2026.
+    measures:
+      - measure.student_count
+    dimensions:
+      - dimension.academic_year
+    filters:
+      - filter.active_enrollment
+    sql_oracle19c: |-
       SELECT
-        f.X_NEW_RETURNING as student_type,
-        COUNT(DISTINCT f.SCHOLAR_WID) as student_count
+        t.ACAD_YR AS academic_year,
+        COUNT(DISTINCT f.SCHOLAR_WID) AS student_count
       FROM OBIA_DW.W_SIA_TERM_ENRLMT_F f
       JOIN OBIA_DW.W_SIA_TERM_D t ON f.TERM_WID = t.ROW_WID
       WHERE f.DELETE_FLG = 'N'
         AND f.X_TERM_ENROLLED_FLAG = 'Y'
-        AND t.ACAD_YR = '2026'
-      GROUP BY f.X_NEW_RETURNING
-      ORDER BY f.X_NEW_RETURNING
-    use_as_onboarding_question: true
-    verified_by: System
-    verified_at: 1740441600
-
-  - name: enrollment_by_academic_career
-    question: Show me enrollment by academic career
-    sql: |-
-      SELECT
-        ac.ACAD_CAR_CODE as career_code,
-        COUNT(DISTINCT f.SCHOLAR_WID) as student_count,
-        COUNT(*) as enrollment_count
-      FROM OBIA_DW.W_SIA_TERM_ENRLMT_F f
-      JOIN OBIA_DW.W_SIA_ACAD_CAR_D ac ON f.ACAD_CAR_WID = ac.ROW_WID
-      JOIN OBIA_DW.W_SIA_TERM_D t ON f.TERM_WID = t.ROW_WID
-      WHERE f.DELETE_FLG = 'N'
-        AND f.X_TERM_ENROLLED_FLAG = 'Y'
-        AND t.ACAD_YR = '2026'
-      GROUP BY ac.ACAD_CAR_CODE
-      ORDER BY student_count DESC
-    use_as_onboarding_question: true
-    verified_by: System
-    verified_at: 1740441600
-
-  - name: enrollment_by_academic_load
-    question: What is the enrollment breakdown by academic load (full-time vs part-time)?
-    sql: |-
-      SELECT
-        al.XACT_TYPE_CODE as load_code,
-        COUNT(DISTINCT f.SCHOLAR_WID) as student_count
-      FROM OBIA_DW.W_SIA_TERM_ENRLMT_F f
-      JOIN OBIA_DW.W_XACT_TYPE_D al ON f.ACAD_LOAD_WID = al.ROW_WID
-      JOIN OBIA_DW.W_SIA_TERM_D t ON f.TERM_WID = t.ROW_WID
-      WHERE f.DELETE_FLG = 'N'
-        AND f.X_TERM_ENROLLED_FLAG = 'Y'
-        AND al.W_XACT_CODE = 'SIA_ACADEMIC_LOAD_CODE'
-        AND t.ACAD_YR = '2026'
-      GROUP BY al.XACT_TYPE_CODE
-      ORDER BY student_count DESC
-    use_as_onboarding_question: true
-    verified_by: System
-    verified_at: 1740441600
-
-  - name: enrollment_by_term_and_type
-    question: Show me enrollment by term and student type for Fall 2026
-    sql: |-
-      SELECT
-        t.TERM_CODE,
-        t.ACAD_YR as academic_year,
-        f.X_NEW_RETURNING as student_type,
-        COUNT(DISTINCT f.SCHOLAR_WID) as student_count
-      FROM OBIA_DW.W_SIA_TERM_ENRLMT_F f
-      JOIN OBIA_DW.W_SIA_TERM_D t ON f.TERM_WID = t.ROW_WID
-      WHERE f.DELETE_FLG = 'N'
-        AND f.X_TERM_ENROLLED_FLAG = 'Y'
-        AND t.ACAD_YR = '2026'
-        AND t.TERM_CODE LIKE '%3'
-      GROUP BY t.TERM_CODE, t.ACAD_YR, f.X_NEW_RETURNING
-      ORDER BY t.TERM_CODE, f.X_NEW_RETURNING
-    use_as_onboarding_question: false
-    verified_by: System
-    verified_at: 1740441600
-
-  - name: enrollment_by_academic_level
-    question: Show me how many students are at each academic level this year
-    sql: |-
-      SELECT
-        lvl.XACT_TYPE_CODE as level_code,
-        COUNT(DISTINCT f.SCHOLAR_WID) as student_count
-      FROM OBIA_DW.W_SIA_TERM_ENRLMT_F f
-      JOIN OBIA_DW.W_XACT_TYPE_D lvl ON f.STRT_ACAD_LVL_WID = lvl.ROW_WID
-      JOIN OBIA_DW.W_SIA_TERM_D t ON f.TERM_WID = t.ROW_WID
-      WHERE f.DELETE_FLG = 'N'
-        AND f.X_TERM_ENROLLED_FLAG = 'Y'
-        AND lvl.W_XACT_CODE = 'SIA_ACADEMIC_LEVEL_CODE'
-        AND t.ACAD_YR = '2026'
-      GROUP BY lvl.XACT_TYPE_CODE
-      ORDER BY student_count DESC
-    use_as_onboarding_question: false
-    verified_by: System
-    verified_at: 1740441600
-
-  - name: year_over_year_comparison
-    question: Compare total enrollment between 2025 and 2026
-    sql: |-
-      SELECT
-        t.ACAD_YR as academic_year,
-        COUNT(DISTINCT f.SCHOLAR_WID) as student_count,
-        COUNT(*) as enrollment_count
-      FROM OBIA_DW.W_SIA_TERM_ENRLMT_F f
-      JOIN OBIA_DW.W_SIA_TERM_D t ON f.TERM_WID = t.ROW_WID
-      WHERE f.DELETE_FLG = 'N'
-        AND f.X_TERM_ENROLLED_FLAG = 'Y'
-        AND t.ACAD_YR IN ('2025', '2026')
+        AND t.ACAD_YR IN ('2024', '2025', '2026')
       GROUP BY t.ACAD_YR
-      ORDER BY t.ACAD_YR DESC
-    use_as_onboarding_question: false
+      ORDER BY t.ACAD_YR
+      FETCH FIRST 100 ROWS ONLY
     verified_by: System
-    verified_at: 1740441600
+    verified_at: '2026-05-28'
 
-  - name: average_gpa_by_career
-    question: What is the average GPA by academic career?
-    sql: |-
+  - id: verified.enrollment_by_academic_career
+    question: Show enrollment by academic career for academic year 2026.
+    measures:
+      - measure.student_count
+      - measure.enrollment_count
+    dimensions:
+      - dimension.academic_career
+    filters:
+      - filter.active_enrollment
+      - filter.current_academic_year
+    sql_oracle19c: |-
       SELECT
-        ac.ACAD_CAR_CODE as career,
-        ROUND(AVG(f.GRADE_PTS), 2) as average_gpa,
-        COUNT(DISTINCT f.SCHOLAR_WID) as student_count
+        ac.ACAD_CAR_CODE AS career_code,
+        COUNT(DISTINCT f.SCHOLAR_WID) AS student_count,
+        COUNT(*) AS enrollment_count
       FROM OBIA_DW.W_SIA_TERM_ENRLMT_F f
       JOIN OBIA_DW.W_SIA_ACAD_CAR_D ac ON f.ACAD_CAR_WID = ac.ROW_WID
       JOIN OBIA_DW.W_SIA_TERM_D t ON f.TERM_WID = t.ROW_WID
       WHERE f.DELETE_FLG = 'N'
         AND f.X_TERM_ENROLLED_FLAG = 'Y'
-        AND f.GRADE_PTS IS NOT NULL
         AND t.ACAD_YR = '2026'
       GROUP BY ac.ACAD_CAR_CODE
-      ORDER BY average_gpa DESC
-    use_as_onboarding_question: false
+      ORDER BY student_count DESC
+      FETCH FIRST 100 ROWS ONLY
     verified_by: System
-    verified_at: 1740441600
-
-# ==============================================================================
-# CUSTOM INSTRUCTIONS
-# ==============================================================================
-module_custom_instructions:
-  question_categorization: |
-    **Data Privacy & Student Information Protection:**
-    - Reject questions about specific individual student records or personally identifiable information (names, addresses, SSN, etc.)
-    - Redirect to aggregate enrollment trends by program, term, academic level, or demographic groups
-    - Encourage role-based analysis: "Show me enrollment trends by academic program" rather than "Show me John Smith's enrollment"
-    - Support institutional research questions about enrollment patterns, retention metrics, and aggregate demographics
-    - ALWAYS anonymize and aggregate data - never return individual student-level details
-
-    **Academic Context & Terminology Clarification:**
-    - When users ask about "students", clarify if they mean: enrolled, active, all students, or prospective
-    - For "current term" questions, clarify which academic year and term (Fall/Spring/Summer)
-    - When users say "this year", confirm they mean academic year 2026
-    - When users say "last year", confirm they mean academic year 2025
-    - Encourage time-range queries: "Fall 2024 vs Fall 2025" rather than single snapshots
-    - For "enrollment" questions, clarify if they want student count (unique) or enrollment count (can be duplicated)
-
-    **Encouraged Question Types (Institutional Research Focus):**
-    - Enrollment trends by academic year, term, career, program, and level
-    - New vs returning student analysis and retention patterns
-    - Academic load distribution (full-time vs part-time enrollment)
-    - Major/minor declaration patterns and program popularity
-    - Academic level progression and cohort tracking
-    - Year-over-year enrollment comparisons
-    - Demographic trends (aggregated only, never individual)
-    - Program capacity and growth analysis
-
-    **Out of Scope Questions (Reject Politely):**
-    - Individual student grades, GPA, or academic performance details
-    - Financial aid amounts, billing, or payment information for individuals
-    - Student disciplinary records or conduct issues
-    - Health information or disability status
-    - Contact information (email, phone, address) for individuals
-    - Questions that could identify specific students even through inference
-
-    **Question Redirection Examples:**
-    - Instead of "What classes is Student X taking?", suggest "What is the enrollment distribution across academic programs?"
-    - Instead of "Show me Student Y's GPA", suggest "What is the average GPA by academic career?"
-    - Instead of "Which students are on probation?", suggest "What are the retention trends by academic level?"
-
-    **Scope & Context Guidance:**
-    - For vague questions, ask for business context: "Are you analyzing enrollment growth, retention, program capacity, or demographic trends?"
-    - Encourage specific time ranges: "last 30 days", "Fall 2026", "year-over-year", "5-year trend"
-    - Suggest filtering by meaningful dimensions: academic career, program, level, load, new vs returning
-    - Guide toward actionable institutional insights rather than raw data dumps
-
-    **Data Freshness & Currency:**
-    - Current academic year is 2026
-    - Always clarify which term or academic year is being referenced
-    - Explain that enrollment data represents a point-in-time snapshot
-    - For trend analysis, suggest comparing similar terms across years (Fall-to-Fall, not Fall-to-Spring)
-
-  sql_generation: |
-    **CRITICAL Default Filters (MUST APPLY UNLESS USER EXPLICITLY OVERRIDES):**
-    - ALWAYS filter WHERE DELETE_FLG = 'N' (exclude soft-deleted records) in ALL queries on W_SIA_TERM_ENRLMT_F
-    - ALWAYS filter WHERE X_TERM_ENROLLED_FLAG = 'Y' (only active enrollments) in ALL queries on W_SIA_TERM_ENRLMT_F
-    - These two filters should be the FIRST conditions in your WHERE clause for performance
-    - Default pattern: WHERE f.DELETE_FLG = 'N' AND f.X_TERM_ENROLLED_FLAG = 'Y' AND ...
-    - Only omit these filters if user explicitly asks for "all records including deleted" or "including inactive enrollments"
-
-    **Academic Year & Term Context:**
-    - Current academic year is 2026 (use this as default when user says "this year" or "current year")
-    - Previous academic year is 2025 (use when user says "last year" or "previous year")
-    - When user says "current term" without specifying, ask for clarification (Fall, Spring, or Summer)
-    - Term codes follow pattern: YYYY + term number (e.g., 20263 = Fall 2026, 20261 = Spring 2026, 20262 = Summer 2026)
-    - For Fall terms, term code ends in 3; Spring ends in 1; Summer ends in 2
-
-    **Lookup Table Joins (W_DOMAIN_MEMBER_LKP_TL) - CRITICAL PATTERN:**
-    - To get human-readable descriptions for codes, ALWAYS join to W_DOMAIN_MEMBER_LKP_TL
-    - The description column is DOMAIN_MEMBER_NAME (NOT member_name, NOT name — exactly DOMAIN_MEMBER_NAME)
-    - Join pattern:
-      LEFT JOIN OBIA_DW.W_DOMAIN_MEMBER_LKP_TL lookup
-        ON dimension_table.CODE_COLUMN = lookup.DOMAIN_MEMBER_CODE
-        AND lookup.DOMAIN_CODE = 'APPROPRIATE_DOMAIN_CODE'
-        AND lookup.LANGUAGE_CODE = 'US'
-    - SELECT lookup.DOMAIN_MEMBER_NAME AS <alias>_description
-    - Domain codes by dimension:
-      * Term: 'SIA_TERM_CODE'
-      * Academic Career: 'SIA_ACAD_CAR_CODE'
-      * Academic Load: 'SIA_ACAD_LOAD_CODE'
-      * Academic Group: 'SIA_ACADEMIC_GROUP_CODE'
-      * Academic Level: 'SIA_ACADEMIC_LEVEL_CODE'
-      * Academic Organization: 'SIA_ACAD_ORG_CODE'
-      * Academic Program: 'SIA_ACAD_PROG_CODE'
-      * Academic Plan: 'SIA_ACAD_PLAN_CODE'
-      * Academic Sub Plan: 'SIA_ACAD_SPLAN_CODE'
-      * Program Status: 'SIA_PROGRAM_STATUS_CODE'
-
-    **W_XACT_TYPE_D Table Usage (CRITICAL - Common Error Point):**
-    - W_XACT_TYPE_D stores MULTIPLE dimension types in a single table
-    - NEVER query this table without filtering by W_XACT_CODE
-    - The only real columns are: XACT_TYPE_CODE, W_XACT_TYPE_CODE (Residency only), ACTIVE_FLG, ROW_WID
-    - NEVER reference columns like academic_type, load_description, level_name — they do NOT exist
-    - Required filters and fact table FK by dimension:
-      * Academic Load:           W_XACT_CODE = 'SIA_ACADEMIC_LOAD_CODE'       FK: ACAD_LOAD_WID
-      * Academic Group:          W_XACT_CODE = 'SIA_ACADEMIC_GROUP_CODE'      FK: ACAD_GRP_WID
-      * Academic Level (start):  W_XACT_CODE = 'SIA_ACADEMIC_LEVEL_CODE'      FK: STRT_ACAD_LVL_WID
-      * Admit Type:              W_XACT_CODE = 'SIA_ADMIT_TYPE_CODE'          FK: ADMIT_TYPE_WID
-      * Program Action Reason:   W_XACT_CODE = 'SIA_PROGRAMME_ACTION_REASON'  FK: PROG_ACN_RSN_WID
-      * Withdraw Reason:         W_XACT_CODE = 'SIA_WITHDRAW_REASON_CODE'     FK: WITHDRAW_REASON_WID
-    - If you forget this filter, you will get mixed data from multiple dimensions (WRONG!)
-    - Pattern: JOIN W_XACT_TYPE_D al ON f.ACAD_LOAD_WID = al.ROW_WID AND al.W_XACT_CODE = 'SIA_ACADEMIC_LOAD_CODE'
-
-    **Student Counting - Important Distinction:**
-    - COUNT(SCHOLAR_WID): Total enrollment count (can count same student multiple times across terms)
-    - COUNT(DISTINCT SCHOLAR_WID): Unique student count (counts each student once regardless of terms)
-    - When user asks "how many students", use COUNT(DISTINCT SCHOLAR_WID)
-    - When user asks "total enrollments" or "enrollment count", use COUNT(*)
-    - Always clarify which is being returned in column alias: student_count vs enrollment_count
-
-    **Multiple Majors/Minors Handling:**
-    - Students can have up to 4 majors: X_MAJOR_1_WID, X_MAJOR_2_WID, X_MAJOR_3_WID, X_MAJOR_4_WID
-    - Students can have up to 3 minors: X_MINOR_1_WID, X_MINOR_2_WID, X_MINOR_3_WID
-    - Students can have up to 4 sub-plans: X_SUBPLAN_1_WID through X_SUBPLAN_4_WID
-    - When user asks "show me majors", you need to handle all 4 major columns
-    - Approach 1 (preferred): UNION across major columns
-    - Approach 2: Show as separate columns (major_1, major_2, etc.)
-    - Example UNION pattern:
-      SELECT SCHOLAR_WID, 1 as major_rank, X_MAJOR_1_WID as major_wid FROM ... WHERE X_MAJOR_1_WID IS NOT NULL
-      UNION ALL
-      SELECT SCHOLAR_WID, 2, X_MAJOR_2_WID FROM ... WHERE X_MAJOR_2_WID IS NOT NULL
-      ...
-
-    **Filtering Out System/Placeholder Values:**
-    - Always exclude __NOT_APPLICABLE__ and __UNASSIGNED__ values in dimensions
-    - Pattern: WHERE code_column NOT IN ('__NOT_APPLICABLE__', '__UNASSIGNED__')
-    - Apply this to: academic career, program, plan, organization, status codes
-
-    **Oracle-Specific SQL Syntax:**
-    - Date functions: TRUNC(SYSDATE), ADD_MONTHS(date, -1), TO_DATE('YYYY-MM-DD', 'YYYY-MM-DD')
-    - For top N queries: Use FETCH FIRST N ROWS ONLY (Oracle 12c+), NOT LIMIT
-    - String concatenation: Use CONCAT(str1, str2) or || operator
-    - Null handling: Use NVL(column, default_value) or COALESCE(column, default)
-    - Current date: SYSDATE (not CURRENT_DATE)
-
-    **Fully Qualified Object Names:**
-    - ALWAYS use fully qualified names: OBIA_DW.TABLE_NAME format
-    - Example: OBIA_DW.W_SIA_TERM_ENRLMT_F, not just W_SIA_TERM_ENRLMT_F
-    - This ensures clarity and prevents ambiguity
-
-    **Table Aliases - Use Consistent Conventions:**
-    - f = fact table (W_SIA_TERM_ENRLMT_F)
-    - t = term dimension (W_SIA_TERM_D)
-    - s = scholar/student dimension (W_SIA_SCHOLAR_D)
-    - ac = academic career (W_SIA_ACAD_CAR_D)
-    - al = academic load (W_XACT_TYPE_D for load)
-    - ag = academic group (W_XACT_TYPE_D for group)
-    - lvl = academic level (W_XACT_TYPE_D for level)
-    - org = academic organization (W_SIA_ACAD_ORG_D)
-    - prog = academic program (W_SIA_ACAD_PROG_D)
-    - plan = academic plan (W_SIA_ACAD_PLAN_D)
-    - splan = academic sub plan (W_SIA_ACAD_SPLAN_D)
-    - stat = program status (W_STATUS_D)
-    - lookup = lookup table (W_DOMAIN_MEMBER_LKP_TL)
-
-    **Column Naming Conventions:**
-    - Use lowercase with underscores: student_count, enrollment_count, academic_year
-    - Include units or context in name: student_count (not just count), average_gpa (not just average)
-    - For percentages: Include 'percentage' or 'rate' in name: retention_rate, completion_percentage
-
-    **Numeric Formatting:**
-    - Round percentages to 2 decimals: ROUND((numerator / NVL(denominator, 1)) * 100, 2)
-    - Round GPA to 2 decimals: ROUND(AVG(GRADE_PTS), 2)
-    - Format counts as integers: COUNT(*), COUNT(DISTINCT col)
-    - Use NVL or NULLIF to prevent division by zero: col1 / NVL(col2, 1)
-
-    **VARCHAR Columns Used in Numeric Aggregations (CRITICAL - Prevents ORA-01722):**
-    - Some columns are physically VARCHAR2 in Oracle but semantically numeric (e.g., GPA, scores, rates)
-    - Before applying numeric aggregations (AVG, SUM, MIN, MAX) on a VARCHAR2 column, ALWAYS wrap with:
-      TO_NUMBER(column DEFAULT NULL ON CONVERSION ERROR)
-    - This silently converts invalid/non-numeric values to NULL, which aggregations skip automatically
-    - Check data_type in the semantic model — if it says VARCHAR2 but you are applying AVG/SUM/MIN/MAX, apply this cast
-    - Do NOT apply this cast for string operations: LISTAGG, CONCAT, analytical functions (RANK, ROW_NUMBER, LAG, etc.), GROUP BY, ORDER BY, or WHERE filters — use the raw column for those
-    - Known columns requiring this treatment when aggregating:
-      * s.X_MOST_RECENT_CUMGPA → AVG(TO_NUMBER(s.X_MOST_RECENT_CUMGPA DEFAULT NULL ON CONVERSION ERROR))
-
-    **Performance Optimization:**
-    - Always put DELETE_FLG = 'N' and X_TERM_ENROLLED_FLAG = 'Y' FIRST in WHERE clause
-    - Limit date ranges when possible: t.ACAD_YR IN ('2025', '2026') is better than t.ACAD_YR > '2020'
-    - Use EXISTS instead of IN for subqueries when checking existence
-    - Avoid SELECT * - specify only needed columns
-    - For exploratory queries, add FETCH FIRST 100 ROWS ONLY
-
-    **Handling NULL Values:**
-    - In joins, use LEFT JOIN when dimension record might not exist
-    - In aggregations, decide if NULL should be 0 or excluded
-    - For counts, NULL is excluded automatically (COUNT ignores NULLs)
-    - For sums/averages, use NVL(column, 0) if you want NULLs as zeros
-
-    **Date Comparisons & Ranges:**
-    - Use DATE_TRUNC or TRUNC for period-based aggregations
-    - For "last month": WHERE TRUNC(date_col, 'MM') = TRUNC(ADD_MONTHS(SYSDATE, -1), 'MM')
-    - For "this year": WHERE t.ACAD_YR = '2026'
-    - For date ranges: Use BETWEEN or >= AND < pattern
-
-    **Sorting & Ordering:**
-    - For enrollment counts: ORDER BY student_count DESC (largest first)
-    - For time series: ORDER BY academic_year, term_code (chronological)
-    - For alphabetical: ORDER BY description, name (use dimension description not code)
-    - Include NULL handling if needed: ORDER BY column NULLS LAST
+    verified_at: '2026-05-01'

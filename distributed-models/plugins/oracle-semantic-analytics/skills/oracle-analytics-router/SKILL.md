@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 ## Overview
 
-Routes Oracle 19c warehouse analytics requests to the right subject-area skill and semantic model. This is the generic entry point for the plugin; subject-specific interpretation belongs in the routed skill.
+Routes warehouse analytics requests to the right subject-area skill and semantic contract. This is the generic entry point for the plugin; subject-specific interpretation belongs in the routed skill. Physical SQL generation is selected from the semantic contract's physical mappings.
 
 ## When to Use
 
@@ -45,10 +45,11 @@ Do not use for:
 4. If no route matches, say that this demo only supports the listed subject areas and ask the user to rephrase within those domains.
 5. For the matched route, use the route's subject-area skill and semantic model.
 6. Generate Oracle 19c `SELECT` SQL only from bundled semantic context.
-7. Validate SQL with `scripts/validate_sql.py` before offering execution.
-8. Ask the user before running SQL against Oracle.
-9. Execute SQL only through `scripts/execute_oracle_readonly.py <sql-file> --yes` after explicit user approval.
-10. Explain the metric definition, filters, assumptions, and caveats.
+7. Validate SQL immediately with `scripts/validate_sql.py -`; do not ask before local validation.
+8. If `ORACLE_ANALYTICS_AUTO_APPROVE=true` is set by the user, execute validated SQL without asking again.
+9. If auto-approval is not set, ask once before Oracle execution.
+10. Execute SQL only through `scripts/execute_oracle_readonly.py - --yes` using stdin.
+11. Explain the metric definition, filters, assumptions, and caveats.
 
 All relative paths above are relative to the installed plugin root. Do not search or explore the user's current working directory for bundled plugin files. Do not read or print `.env` file contents; pass `.env` paths with `--env-file`.
 
@@ -93,7 +94,7 @@ python plugins/oracle-semantic-analytics/scripts/configure_oracle.py
 - Never store credentials in this repository.
 - Never return row-level sensitive records.
 - Never bypass validation.
-- Never run `execute_oracle_readonly.py` without explicit user approval unless `ORACLE_ANALYTICS_AUTO_APPROVE=true` is already set by the user in the local environment.
+- Never run `execute_oracle_readonly.py` before validation. User approval is satisfied by `ORACLE_ANALYTICS_AUTO_APPROVE=true`; otherwise ask once before live execution.
 - If the user asks for unsafe SQL or individual student records, refuse and offer aggregate alternatives.
 
 ## Common Mistakes
@@ -103,7 +104,7 @@ python plugins/oracle-semantic-analytics/scripts/configure_oracle.py
 - Leaving generated SQL scratch files in the user's project. Prefer piping generated SQL to `validate_sql.py -` and `execute_oracle_readonly.py -`.
 - Reading `.env` into the conversation. Never display credential files.
 - Routing unsupported subject areas by inventing tables or metrics. Instead, explain the supported routes.
-- Executing SQL before validation or without explicit user approval.
+- Executing SQL before validation, or asking repeatedly after `ORACLE_ANALYTICS_AUTO_APPROVE=true` is already set.
 - Assuming thin mode works in all Oracle environments. This demo defaults to thick mode for Native Network Encryption compatibility.
 - Putting production governance in the local plugin. The production model is a central gateway.
 

@@ -106,9 +106,61 @@ def validate_yaml() -> None:
         fail("PyYAML is required for package validation")
     model_path = ROOT / "assets" / "semantic_models" / "sia_term_enrollments.yaml"
     model = yaml.safe_load(model_path.read_text(encoding="utf-8"))
-    for field in ["name", "description", "tables", "relationships", "verified_queries"]:
+    contract_fields = [
+        "semantic_model",
+        "domain",
+        "business_glossary",
+        "logical_model",
+        "semantic_rules",
+        "physical_mappings",
+        "governance",
+        "validation",
+        "interoperability",
+        "lineage",
+        "freshness",
+        "presentation",
+        "verified_queries",
+    ]
+    for field in contract_fields:
         if field not in model:
-            fail(f"semantic model missing required field: {field}")
+            fail(f"semantic model missing required contract field: {field}")
+    semantic_model = model["semantic_model"]
+    for field in ["id", "name", "version", "model_type", "description"]:
+        if not semantic_model.get(field):
+            fail(f"semantic_model missing required field: {field}")
+    logical = model["logical_model"]
+    for field in ["entities", "dimensions", "measures", "filters", "relationships"]:
+        if not logical.get(field):
+            fail(f"logical_model missing required field: {field}")
+    entities = {entity.get("id"): entity for entity in logical["entities"]}
+    fact = entities.get("entity.term_enrollment")
+    if not fact:
+        fail("logical_model missing entity.term_enrollment")
+    if not fact.get("grain", {}).get("keys"):
+        fail("entity.term_enrollment grain must declare keys")
+    measures = {measure.get("name"): measure for measure in logical["measures"]}
+    for metric_name in ["student_count", "enrollment_count"]:
+        metric = measures.get(metric_name)
+        if not metric:
+            fail(f"logical_model missing measure: {metric_name}")
+        for field in ["id", "type", "entity", "default_filters", "allowed_dimensions", "format"]:
+            if field not in metric:
+                fail(f"measure {metric_name} missing required field: {field}")
+    for rel in logical["relationships"]:
+        for field in ["id", "cardinality", "join_type_default", "trusted", "role"]:
+            if field not in rel:
+                fail(f"relationship {rel.get('id')} missing required field: {field}")
+    physical = model["physical_mappings"][0]
+    for field in ["platform", "objects", "joins", "measure_expressions", "filter_expressions"]:
+        if field not in physical:
+            fail(f"physical mapping missing required field: {field}")
+    if physical["platform"].get("type") != "oracle":
+        fail("expected an oracle physical mapping for this demo")
+    governance = model["governance"]
+    if not governance.get("security") or not governance.get("privacy_controls"):
+        fail("governance must include security and privacy_controls")
+    if not model["validation"].get("sql_generation") or not model["validation"].get("evaluation_tests"):
+        fail("validation must include sql_generation and evaluation_tests")
 
 def validate_sample_sql() -> None:
     sys.path.insert(0, str(ROOT / "scripts"))

@@ -3,7 +3,7 @@ routes:
     name: Student Enrollment Analytics
     skill: student-enrollment-analytics
     semantic_model: assets/semantic_models/sia_term_enrollments.yaml
-    description: Student Information Analytics term enrollment questions over Oracle 19c warehouse data.
+    description: Student Information Analytics term enrollment questions using a platform-agnostic semantic contract with an Oracle 19c physical mapping.
     keywords:
       - student
       - students

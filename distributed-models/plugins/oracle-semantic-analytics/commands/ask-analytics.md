@@ -25,7 +25,8 @@ Steps:
 6. Generate relevant semantic context with `<plugin-root>/scripts/generate_prompt_context.py`.
 7. Ask clarifying questions if the term, metric, subject area, or grouping is ambiguous.
 8. Generate Oracle 19c SELECT-only SQL.
-9. Validate with `<plugin-root>/scripts/validate_sql.py -` using stdin, or with a file only if the user asks to keep the SQL.
-10. Ask the user before executing unless `ORACLE_ANALYTICS_AUTO_APPROVE=true` is set by the user.
-11. Execute only with `<plugin-root>/scripts/execute_oracle_readonly.py - --yes` using stdin after explicit approval, or pass `--env-file <path>` when the user keeps credentials in a local ignored `.env`.
-12. Summarize result, metric definition, filters, route choice, and caveats.
+9. Validate immediately with `<plugin-root>/scripts/validate_sql.py -` using stdin; do not ask before running local validation.
+10. If `ORACLE_ANALYTICS_AUTO_APPROVE=true` is set by the user, execute the validated SQL without asking again.
+11. If auto-approval is not set, ask once before Oracle execution.
+12. Execute only with `<plugin-root>/scripts/execute_oracle_readonly.py - --yes` using stdin, or pass `--env-file <path>` when the user keeps credentials in a local ignored `.env`.
+13. Summarize result, metric definition, filters, route choice, and caveats.

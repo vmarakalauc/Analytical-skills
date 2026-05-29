@@ -99,7 +99,7 @@ python scripts/validate_sql.py examples/sample_generated_sql.sql
 
 ## Execute SQL
 
-Execution is optional and must happen only after SQL validation and explicit user approval, unless `ORACLE_ANALYTICS_AUTO_APPROVE=true` is set in the local shell or ignored user config:
+Execution is optional and must happen only after SQL validation. Set `ORACLE_ANALYTICS_AUTO_APPROVE=true` in the local shell or ignored user config to skip repeated interactive execution prompts during a controlled demo session:
 
 ```powershell
 python scripts/execute_oracle_readonly.py examples/sample_generated_sql.sql --yes
@@ -116,8 +116,8 @@ The executor runs only after the SQL passes local validation, starts an Oracle r
 3. Generate or inspect semantic context with `python scripts/generate_prompt_context.py --question "..."`
 4. Generate Oracle 19c `SELECT` SQL using only bundled semantic model objects.
 5. Validate with `python scripts/validate_sql.py <sql-file>`.
-6. Ask for user approval before Oracle execution.
-7. Execute only with `python scripts/execute_oracle_readonly.py <sql-file> --yes`.
+6. Execute only with `python scripts/execute_oracle_readonly.py <sql-file> --yes`.
+7. Use `ORACLE_ANALYTICS_AUTO_APPROVE=true` to avoid repeated execution prompts during a controlled demo session.
 
 For Claude Code command usage, prefer piping generated SQL to `validate_sql.py -` and `execute_oracle_readonly.py -` so temporary SQL files are not left in the user's project folder.
 
