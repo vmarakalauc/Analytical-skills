@@ -6,10 +6,22 @@ Set up the local Oracle semantic analytics runtime and user config.
 
 Resolve all plugin files relative to the installed plugin root, not the user's current working directory. Do not search or explore the user's project folder for bundled plugin files.
 
-Run:
+Do not run the setup script in interactive prompt mode from Claude Code. Collect the non-secret values from the user, then run the script with command-line flags.
+
+Ask for these non-secret values:
+
+- SIA Oracle username
+- SIA Oracle DSN, such as `host:port/service`
+- Oracle Client library folder, or say you will use auto-detection if the user does not know it
+- Whether controlled-demo auto-approval should be `true` or `false`
+- Maximum rows, default `1000`
+
+Do not ask for the Oracle password.
+
+Run the setup script like this, omitting optional flags only when the user leaves the value blank:
 
 ```bash
-python <plugin-root>/scripts/setup_analytics.py
+python <plugin-root>/scripts/setup_analytics.py --sia-user "<user>" --sia-dsn "<host:port/service>" --oracle-client-lib "<client-lib-folder>" --auto-approve false --max-rows 1000
 ```
 
 This setup creates:

@@ -57,6 +57,11 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--skip-install", action="store_true", help="Create config only; do not install Python packages.")
     parser.add_argument("--yes", action="store_true", help="Accept defaults for prompts where possible.")
+    parser.add_argument("--sia-user", help="SIA Oracle username to store in local non-secret config.")
+    parser.add_argument("--sia-dsn", help="SIA Oracle DSN, for example host:port/service.")
+    parser.add_argument("--oracle-client-lib", help="Oracle Client library folder for thick mode.")
+    parser.add_argument("--auto-approve", choices=["true", "false"], help="Whether validated SQL may execute without an extra prompt.")
+    parser.add_argument("--max-rows", type=int, help="Maximum rows to return from live execution.")
     args = parser.parse_args()
 
     print("Oracle Semantic Analytics setup")
@@ -72,12 +77,22 @@ def main() -> int:
         return 1
 
     detected_client = find_oracle_client()
-    if args.yes:
-        sia_user = ""
-        sia_dsn = ""
-        oracle_client_lib = detected_client
-        auto_approve = False
-        max_rows = 1000
+    has_cli_config = any(
+        value is not None
+        for value in [
+            args.sia_user,
+            args.sia_dsn,
+            args.oracle_client_lib,
+            args.auto_approve,
+            args.max_rows,
+        ]
+    )
+    if args.yes or has_cli_config:
+        sia_user = args.sia_user or ""
+        sia_dsn = args.sia_dsn or ""
+        oracle_client_lib = args.oracle_client_lib if args.oracle_client_lib is not None else detected_client
+        auto_approve = args.auto_approve == "true" if args.auto_approve is not None else False
+        max_rows = args.max_rows or 1000
     else:
         sia_user = prompt_value("SIA Oracle username")
         sia_dsn = prompt_value("SIA Oracle DSN (host:port/service)")
