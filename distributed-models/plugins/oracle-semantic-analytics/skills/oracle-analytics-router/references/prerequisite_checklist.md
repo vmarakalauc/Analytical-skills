@@ -14,25 +14,27 @@ Required for routing, prompt context, and SQL validation:
 Required for live Oracle execution:
 
 - `oracledb`
-- `ORACLE_USER`
-- `ORACLE_PASSWORD`
-- `ORACLE_DSN`
+- `~/.oracle-semantic-analytics/config.json`
+- `SIA_USER`
+- `SIA_DSN`
+- `SIA_USER_PWD`
+- `ORACLE_CLIENT_LIB` or config `oracle_client_lib`
 
 Optional:
 
-- `ORACLE_THIN_MODE`
-- `ORACLE_CLIENT_LIB_DIR`
-- `MAX_ROWS`
-- `ORACLE_ANALYTICS_AUTO_APPROVE`
+- `SIA_MAX_ROWS`
+- `SIA_AUTO_APPROVE`
+- `SIA_REPORTS_DIR`
+- `SIA_ORACLE_THIN_MODE` for advanced thin-mode override
 
 Validation-only setup should pass with:
 
 ```bash
-python scripts/check_prereqs.py
+python scripts/run_tool.py check_prereqs.py
 ```
 
 Execution setup should pass with:
 
 ```bash
-python scripts/check_prereqs.py --require-oracle
+python scripts/run_tool.py check_prereqs.py --require-oracle
 ```

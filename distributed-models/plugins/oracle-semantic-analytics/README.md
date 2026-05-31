@@ -2,6 +2,68 @@
 
 This Claude Code plugin demonstrates local/distributed Oracle semantic analytics for an Oracle 19c warehouse demo. It ships Claude Code skills, a bundled semantic YAML model, helper scripts, and local SQL validation.
 
+## Quickstart for Claude Code users
+
+1. Install or update the plugin from the marketplace.
+
+   ```text
+   /plugin
+   ```
+
+2. Reload plugins after install or update.
+
+   ```text
+   /reload-plugins
+   ```
+
+3. Run first-time setup once per workstation.
+
+   ```text
+   /oracle-semantic-analytics:setup-analytics
+   ```
+
+   Setup creates `~/.oracle-semantic-analytics/config.json`, a local Python runtime, and a reports directory. It asks for non-secret settings such as SIA username, DSN, Oracle Client folder, row limit, and auto-approval preference. It does not store the Oracle password.
+
+4. Set the Oracle password in the shell that starts Claude Code.
+
+   PowerShell:
+
+   ```powershell
+   $env:SIA_USER_PWD = "your_password"
+   claude
+   ```
+
+   CMD:
+
+   ```cmd
+   set SIA_USER_PWD=your_password
+   claude
+   ```
+
+   Do not paste the password into Claude chat. If Claude Code is already running, close it, set `SIA_USER_PWD`, and start Claude Code again from that same shell.
+
+5. Check readiness.
+
+   ```text
+   /oracle-semantic-analytics:check-oracle-config
+   ```
+
+   Missing `SIA_USER_PWD` blocks live Oracle execution only. SQL generation and validation can still run.
+
+6. Ask analytics questions.
+
+   ```text
+   /oracle-semantic-analytics:ask-analytics
+   ```
+
+   Example:
+
+   ```text
+   get me full time student count for each fall term
+   ```
+
+For controlled demos, set `sia_auto_approve` during setup or set `SIA_AUTO_APPROVE=true` in the shell so validated read-only SQL executes without an extra prompt.
+
 The plugin follows Claude Code plugin conventions:
 
 - `.claude-plugin/plugin.json` contains plugin metadata only.
@@ -25,106 +87,120 @@ routing/
 
 scripts/
   check_prereqs.py
-  configure_oracle.py
+  setup_analytics.py
+  run_tool.py
   generate_prompt_context.py
   validate_sql.py
   execute_oracle_readonly.py
 
 commands/
+  setup-analytics.md
   ask-analytics.md
   check-oracle-config.md
   ask-enrollment.md
 ```
 
-## Local configuration
+## First-time setup
 
-Install Python dependencies in a local virtual environment:
+After installing the plugin, run the setup command once from Claude Code:
+
+```text
+/oracle-semantic-analytics:setup-analytics
+```
+
+The setup creates local runtime state outside any project repository:
+
+```text
+~/.oracle-semantic-analytics/
+  config.json      # non-secret connection/runtime settings
+  venv/            # plugin Python dependencies
+  reports/         # generated local HTML reports
+```
+
+The setup stores non-secret values only:
+
+- `sia_user`
+- `sia_dsn`
+- `oracle_client_lib`
+- `sia_auto_approve`
+- `sia_max_rows`
+- `reports_dir`
+
+The Oracle password is not stored. Set it in the shell that starts Claude Code before live execution:
+
+```powershell
+$env:SIA_USER_PWD = "your_password"
+```
+
+For a persistent enterprise setup, set `SIA_USER_PWD` with your approved local password-management process rather than pasting it into Claude chat.
+
+## Local developer setup
+
+For repository development, you can also install dependencies in an in-repo virtual environment:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
+python -m pip install -r distributed-models/plugins/oracle-semantic-analytics/requirements.txt
 ```
 
 For SQL generation and validation only, Oracle credentials are not required:
 
 ```powershell
-python scripts/check_prereqs.py
-python scripts/check_prereqs.py --env-file C:\sql\.env --require-oracle
+python scripts/run_tool.py check_prereqs.py
+python scripts/setup_analytics.py --skip-install
+python scripts/run_tool.py check_prereqs.py --require-oracle
 python scripts/validate_plugin_package.py
-python scripts/validate_sql.py examples/sample_generated_sql.sql
-Get-Content examples/sample_generated_sql.sql | python scripts/validate_sql.py -
+python scripts/run_tool.py validate_sql.py examples/sample_generated_sql.sql
+Get-Content examples/sample_generated_sql.sql | python scripts/run_tool.py validate_sql.py -
 ```
 
-For optional Oracle execution, use environment variables:
-
-```bash
-export ORACLE_USER="your_user"
-export ORACLE_PASSWORD="your_password"
-export ORACLE_DSN="host.example.edu:1521/service_name"
-```
-
-Optional:
-
-```bash
-export ORACLE_THIN_MODE=false
-export ORACLE_CLIENT_LIB_DIR="/path/to/instantclient"
-export MAX_ROWS=1000
-export ORACLE_ANALYTICS_AUTO_APPROVE=false
-```
-
-The executor defaults to Oracle thick mode because many Oracle environments use Native Network Encryption. Set `ORACLE_THIN_MODE=true` only when your Oracle service supports thin mode. Set `ORACLE_ANALYTICS_AUTO_APPROVE=true` only for a controlled demo session where you want validated SQL to execute without an interactive prompt.
+The executor defaults to Oracle thick mode because many Oracle environments use Native Network Encryption. Users should not need to choose a mode during normal setup; the setup detects common Oracle Client locations and stores the client library folder when found. Thin mode is an advanced override with `SIA_ORACLE_THIN_MODE=true`.
 
 Never commit real Oracle credentials.
-
-You can also write local settings outside the repository:
-
-```powershell
-python scripts/configure_oracle.py
-python scripts/check_prereqs.py --require-oracle
-```
 
 ## Generate semantic prompt context
 
 ```powershell
-python scripts/generate_prompt_context.py \
+python scripts/run_tool.py generate_prompt_context.py \
   --question "How many active students are enrolled by academic program for Fall 2026?"
 ```
 
 ## Validate SQL
 
 ```powershell
-python scripts/validate_sql.py examples/sample_generated_sql.sql
+python scripts/run_tool.py validate_sql.py examples/sample_generated_sql.sql
 ```
 
 ## Execute SQL
 
-Execution is optional and must happen only after SQL validation. Set `ORACLE_ANALYTICS_AUTO_APPROVE=true` in the local shell or ignored user config to skip repeated interactive execution prompts during a controlled demo session:
+Execution is optional and must happen only after SQL validation. Set `sia_auto_approve` in `~/.oracle-semantic-analytics/config.json`, or set `SIA_AUTO_APPROVE=true` in the shell, to skip repeated interactive execution prompts during a controlled demo session:
 
 ```powershell
-python scripts/execute_oracle_readonly.py examples/sample_generated_sql.sql --yes
-python scripts/execute_oracle_readonly.py examples/sample_generated_sql.sql --env-file C:\sql\.env --yes
-Get-Content examples/sample_generated_sql.sql | python scripts/execute_oracle_readonly.py - --env-file C:\sql\.env --yes
+python scripts/run_tool.py execute_oracle_readonly.py examples/sample_generated_sql.sql --yes
+Get-Content examples/sample_generated_sql.sql | python scripts/run_tool.py execute_oracle_readonly.py - --yes
 ```
 
-The executor runs only after the SQL passes local validation, starts an Oracle read-only transaction, and caps returned rows with `MAX_ROWS`. This remains demo-level validation, not production governance.
+The executor runs only after the SQL passes local validation, starts an Oracle read-only transaction, and caps returned rows with `SIA_MAX_ROWS` or config `sia_max_rows`. This remains demo-level validation, not production governance.
 
 ## Demo workflow
 
-1. Check prerequisites with `python scripts/check_prereqs.py`.
-2. Route the question using `routing/subject-area-routing.yaml`.
-3. Generate or inspect semantic context with `python scripts/generate_prompt_context.py --question "..."`
-4. Generate Oracle 19c `SELECT` SQL using only bundled semantic model objects.
-5. Validate with `python scripts/validate_sql.py <sql-file>`.
-6. Execute only with `python scripts/execute_oracle_readonly.py <sql-file> --yes`.
-7. Use `ORACLE_ANALYTICS_AUTO_APPROVE=true` to avoid repeated execution prompts during a controlled demo session.
+1. Run `/oracle-semantic-analytics:setup-analytics` once after install.
+2. Ask with `/oracle-semantic-analytics:ask-analytics`.
+3. Route the question using `routing/subject-area-routing.yaml`.
+4. Generate or inspect semantic context with `python scripts/run_tool.py generate_prompt_context.py --question "..."`
+5. Generate Oracle 19c `SELECT` SQL using only bundled semantic model objects.
+6. Validate with `python scripts/run_tool.py validate_sql.py -` using stdin.
+7. Execute only with `python scripts/run_tool.py execute_oracle_readonly.py - --yes` using stdin.
+8. Use `SIA_AUTO_APPROVE=true` or config `sia_auto_approve: true` to avoid repeated execution prompts during a controlled demo session.
 
-For Claude Code command usage, prefer piping generated SQL to `validate_sql.py -` and `execute_oracle_readonly.py -` so temporary SQL files are not left in the user's project folder.
+For Claude Code command usage, prefer piping generated SQL to `run_tool.py validate_sql.py -` and `run_tool.py execute_oracle_readonly.py -` so temporary SQL files are not left in the user's project folder.
 
 ## Safety boundaries
 
 - Do not paste passwords into Claude chat.
 - Do not commit `.env`, Oracle wallet files, DSNs, keys, or student PII.
+- Do not create plugin temp files in the user's working directory; use stdin for SQL and `~/.oracle-semantic-analytics/reports` for reports.
 - Do not invent tables, joins, metrics, or filters outside `assets/semantic_models/`.
 - Do not return row-level student records.
 - Use aggregate answers and small-cell/privacy caveats for student analytics.
