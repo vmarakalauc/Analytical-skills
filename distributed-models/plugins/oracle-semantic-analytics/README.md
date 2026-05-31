@@ -22,7 +22,7 @@ This Claude Code plugin demonstrates local/distributed Oracle semantic analytics
    /oracle-semantic-analytics:setup-analytics
    ```
 
-   Setup creates `~/.oracle-semantic-analytics/config.json`, a local Python runtime, and a reports directory. It asks for non-secret settings such as SIA username, DSN, Oracle Client folder, row limit, and auto-approval preference. It does not store the Oracle password.
+   Setup creates `~/.oracle-semantic-analytics/config.json`, a local Python runtime, and a reports directory. It uses `${CLAUDE_PLUGIN_ROOT}` to run bundled plugin scripts directly, so Claude Code should not search your project folder for setup files. It asks for non-secret settings such as SIA username, DSN, Oracle Client folder, row limit, and auto-approval preference. It does not store the Oracle password.
 
 4. Set the Oracle password in the shell that starts Claude Code.
 
@@ -133,6 +133,14 @@ $env:SIA_USER_PWD = "your_password"
 ```
 
 For a persistent enterprise setup, set `SIA_USER_PWD` with your approved local password-management process rather than pasting it into Claude chat.
+
+Manual terminal fallback:
+
+```powershell
+python "${CLAUDE_PLUGIN_ROOT}/scripts/configure_oracle.py"
+```
+
+Use the manual fallback only when you intentionally want a terminal wizard outside the normal Claude Code command flow.
 
 ## Local developer setup
 

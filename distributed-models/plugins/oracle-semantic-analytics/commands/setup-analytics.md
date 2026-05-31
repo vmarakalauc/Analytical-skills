@@ -4,7 +4,7 @@ description: Run first-time setup for the Oracle semantic analytics plugin.
 
 Set up the local Oracle semantic analytics runtime and user config.
 
-Resolve all plugin files relative to the installed plugin root, not the user's current working directory. Do not search or explore the user's project folder for bundled plugin files.
+Use `${CLAUDE_PLUGIN_ROOT}` for plugin files. Do not search, glob, or explore the user's project folder for bundled plugin files.
 
 Do not run the setup script in interactive prompt mode from Claude Code. Collect the non-secret values from the user, then run the script with command-line flags.
 
@@ -21,7 +21,13 @@ Do not ask for the Oracle password.
 Run the setup script like this, omitting optional flags only when the user leaves the value blank:
 
 ```bash
-python <plugin-root>/scripts/setup_analytics.py --sia-user "<user>" --sia-dsn "<host:port/service>" --oracle-client-lib "<client-lib-folder>" --auto-approve false --max-rows 1000
+python "${CLAUDE_PLUGIN_ROOT}/scripts/setup_analytics.py" --sia-user "<user>" --sia-dsn "<host:port/service>" --oracle-client-lib "<client-lib-folder>" --auto-approve false --max-rows 1000
+```
+
+If the user explicitly asks for a terminal wizard instead, tell them to run this outside Claude Code:
+
+```bash
+python "${CLAUDE_PLUGIN_ROOT}/scripts/configure_oracle.py"
 ```
 
 This setup creates:
