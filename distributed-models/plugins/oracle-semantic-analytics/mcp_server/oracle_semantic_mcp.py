@@ -110,28 +110,6 @@ def tool_schema() -> list[dict[str, Any]]:
             ),
             "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
         },
-        {
-            "name": "oracle_semantic_render_report",
-            "description": (
-                "Render query results as a local HTML analytics report with an optional chart. "
-                "Use after SQL execution when a visualization improves understanding; for trends "
-                "prefer line charts, for categorical breakdowns prefer bar charts, and for small "
-                "or single-value results prefer no chart."
-            ),
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "question": {"type": "string"},
-                    "columns": {"type": "array", "items": {"type": "string"}},
-                    "rows": {"type": "array", "items": {"type": "array"}},
-                    "sql": {"type": "string"},
-                    "summary": {"type": "string"},
-                    "chart_type": {"type": "string", "enum": ["auto", "none", "line", "bar"]},
-                },
-                "required": ["question", "columns", "rows"],
-                "additionalProperties": False,
-            },
-        },
     ]
 
 
@@ -200,20 +178,6 @@ def call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         if code != 0:
             return text_result(output, is_error=True)
         return text_result(f"Data dictionary written: {output.strip()}")
-
-    if name == "oracle_semantic_render_report":
-        payload = {
-            "question": arguments.get("question"),
-            "columns": arguments.get("columns"),
-            "rows": arguments.get("rows"),
-            "sql": arguments.get("sql", ""),
-            "summary": arguments.get("summary", ""),
-            "chart_type": arguments.get("chart_type", "auto"),
-        }
-        code, output = run_script("render_report.py", ["-"], stdin=json.dumps(payload))
-        if code != 0:
-            return text_result(output, is_error=True)
-        return text_result(f"Report written: {output.strip()}")
 
     return text_result(f"Unknown tool: {name}", is_error=True)
 
