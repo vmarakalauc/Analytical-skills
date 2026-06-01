@@ -1,7 +1,6 @@
 ---
 name: oracle-analytics-router
 description: Use when the user asks Oracle warehouse analytics questions that may match a supported subject area in this plugin
-disable-model-invocation: true
 ---
 
 # Oracle Analytics Router
@@ -58,7 +57,7 @@ The demo currently supports:
 
 - `student_enrollment` through `student-enrollment-analytics`
 
-Do not invent additional routes. Future subject areas should be added to `routing/subject-area-routing.yaml` and receive their own subject-area skill.
+Do not invent additional routes. Additional subject areas should be added to `routing/subject-area-routing.yaml` and receive their own subject-area skill.
 
 ## Prerequisite Handling
 
@@ -92,9 +91,4 @@ Oracle execution is not configured yet. You can still generate and validate SQL.
 - Reading `.env`, config, or credential values into the conversation. Never display credential files or passwords.
 - Routing unsupported subject areas by inventing tables or metrics. Instead, explain the supported routes.
 - Executing SQL before validation, or asking repeatedly after `SIA_AUTO_APPROVE=true` is already set.
-- Assuming thin mode works in all Oracle environments. This demo defaults to thick mode for Native Network Encryption compatibility.
-- Putting production governance in the local plugin. The production model is a central gateway.
-
-## Production Caveat
-
-This local skill/plugin model is for demo and power-user scenarios. Production usage should use a central governed MCP/API gateway.
+- Assuming thin mode works in all Oracle environments. Thick mode is the default for Native Network Encryption compatibility.

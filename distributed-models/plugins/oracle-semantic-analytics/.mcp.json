@@ -3,7 +3,8 @@
     "oracle-semantic-analytics": {
       "command": "python",
       "args": [
-        "${CLAUDE_PLUGIN_ROOT}/mcp_server/oracle_semantic_mcp.py"
+        "${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py",
+        "mcp_server/oracle_semantic_mcp.py"
       ],
       "env": {
         "ORACLE_SEMANTIC_PLUGIN_ROOT": "${CLAUDE_PLUGIN_ROOT}",

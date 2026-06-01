@@ -10,6 +10,7 @@ from analytics_config import VENV_DIR
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
+ALLOWED_DIRS = {SCRIPTS.resolve(), (ROOT / "mcp_server").resolve()}
 
 
 def venv_python() -> Path:
@@ -24,10 +25,15 @@ def main() -> int:
         return 2
 
     script_name = sys.argv[1]
-    script_path = (SCRIPTS / script_name).resolve()
-    if script_path.parent != SCRIPTS.resolve() or not script_path.exists():
-        print(f"Unknown plugin tool script: {script_name}")
-        return 2
+    # Allow scripts/foo.py or mcp_server/foo.py passed as relative paths
+    candidate = (ROOT / script_name).resolve()
+    if candidate.parent not in ALLOWED_DIRS or not candidate.exists():
+        # Fallback: bare name looked up in scripts/
+        candidate = (SCRIPTS / script_name).resolve()
+        if candidate.parent != SCRIPTS.resolve() or not candidate.exists():
+            print(f"Unknown plugin tool script: {script_name}")
+            return 2
+    script_path = candidate
 
     py = venv_python()
     if py.exists() and Path(sys.executable).resolve() != py.resolve():
