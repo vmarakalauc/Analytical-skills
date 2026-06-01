@@ -1,214 +1,213 @@
-# Oracle Semantic Analytics Plugin
+# Oracle Semantic Analytics — Plugin Quickstart
 
-This Claude Code plugin demonstrates local/distributed Oracle semantic analytics for an Oracle 19c warehouse demo. It ships Claude Code skills, a bundled semantic YAML model, helper scripts, and local SQL validation.
+A Claude Code plugin for Oracle 19c student enrollment analytics. It generates and validates SQL from natural language using a bundled semantic model, with optional live Oracle execution.
 
-## Quickstart for Claude Code users
+---
 
-1. Install or update the plugin from the marketplace.
+## Step 1 — Install the plugin
 
-   ```text
-   /plugin
-   ```
+Open a terminal (PowerShell or CMD) and run:
 
-2. Reload plugins after install or update.
-
-   ```text
-   /reload-plugins
-   ```
-
-3. Run first-time setup once per workstation.
-
-   ```text
-   /oracle-semantic-analytics:setup-analytics
-   ```
-
-   Setup creates `~/.oracle-semantic-analytics/config.json`, a local Python runtime, and a reports directory. It uses `${CLAUDE_PLUGIN_ROOT}` to run bundled plugin scripts directly, so Claude Code should not search your project folder for setup files. It asks for non-secret settings such as SIA username, DSN, Oracle Client folder, row limit, and auto-approval preference. It does not store the Oracle password.
-
-4. Set the Oracle password in the shell that starts Claude Code.
-
-   PowerShell:
-
-   ```powershell
-   $env:SIA_USER_PWD = "your_password"
-   claude
-   ```
-
-   CMD:
-
-   ```cmd
-   set SIA_USER_PWD=your_password
-   claude
-   ```
-
-   Do not paste the password into Claude chat. If Claude Code is already running, close it, set `SIA_USER_PWD`, and start Claude Code again from that same shell.
-
-5. Check readiness.
-
-   ```text
-   /oracle-semantic-analytics:check-oracle-config
-   ```
-
-   Missing `SIA_USER_PWD` blocks live Oracle execution only. SQL generation and validation can still run.
-
-6. Ask analytics questions.
-
-   ```text
-   /oracle-semantic-analytics:ask-analytics
-   ```
-
-   Example:
-
-   ```text
-   get me full time student count for each fall term
-   ```
-
-For controlled demos, set `sia_auto_approve` during setup or set `SIA_AUTO_APPROVE=true` in the shell so validated read-only SQL executes without an extra prompt.
-
-The plugin follows Claude Code plugin conventions:
-
-- `.claude-plugin/plugin.json` contains plugin metadata only.
-- `skills/` contains skill directories with `SKILL.md`.
-- `commands/` contains optional slash-command markdown files.
-- Runtime assets and scripts stay inside the plugin root so installed marketplace copies remain self-contained.
-
-## Contents
-
-```text
-skills/
-  oracle-analytics-router/
-  student-enrollment-analytics/
-
-assets/
-  semantic_models/
-    sia_term_enrollments.yaml
-
-routing/
-  subject-area-routing.yaml
-
-scripts/
-  check_prereqs.py
-  setup_analytics.py
-  run_tool.py
-  generate_prompt_context.py
-  validate_sql.py
-  execute_oracle_readonly.py
-
-commands/
-  setup-analytics.md
-  ask-analytics.md
-  check-oracle-config.md
-  ask-enrollment.md
+```powershell
+claude plugin marketplace add vmarakalauc/Analytical-skills
+claude plugin install oracle-semantic-analytics@analytical-skills
 ```
 
-## First-time setup
+Then open Claude Code and reload plugins by typing this in the chat input:
 
-After installing the plugin, run the setup command once from Claude Code:
+```text
+/reload-plugins
+```
+
+> **New to Claude Code?** Download and install it from [claude.ai/code](https://claude.ai/code), then open it. All `/commands` are typed directly in the chat input box.
+
+---
+
+## Step 2 — Set your Oracle password
+
+Do this **before** running setup, so the setup wizard can verify your connection.
+
+Open a terminal, set the password, then start Claude Code from that same terminal:
+
+**PowerShell:**
+
+```powershell
+$env:SIA_USER_PWD = "your_password"
+claude
+```
+
+**CMD:**
+
+```cmd
+set SIA_USER_PWD=your_password
+claude
+```
+
+Do not paste the password into the Claude chat. If Claude Code is already running, close it, set the variable, and restart from the same shell.
+
+---
+
+## Step 3 — Run first-time setup
+
+In the Claude Code chat input, run:
 
 ```text
 /oracle-semantic-analytics:setup-analytics
 ```
 
-The setup creates local runtime state outside any project repository:
+The wizard will ask for a few connection settings — have these ready (ask your DBA if unsure):
+
+| Prompt | What to enter |
+|---|---|
+| Oracle username | Your DB username, e.g. `SIA_USER` |
+| Oracle DSN | Easy Connect string, e.g. `myhost:1521/MYDB` |
+| Oracle Client folder | Path to Oracle Instant Client, e.g. `C:\oracle\instantclient_21` — leave blank for thin mode |
+| Row limit | Max rows to return per query, e.g. `100` |
+| Auto-approve | `y` for demos (skips execution prompt), `n` for normal use |
+
+Setup creates a local config outside your project folder:
 
 ```text
 ~/.oracle-semantic-analytics/
-  config.json      # non-secret connection/runtime settings
-  venv/            # plugin Python dependencies
-  reports/         # generated local HTML reports
+  config.json      # non-secret settings
+  venv/            # isolated Python runtime
+  reports/         # generated HTML reports
 ```
 
-The setup stores non-secret values only:
+**The Oracle password is never stored** — it stays in your shell environment only.
 
-- `sia_user`
-- `sia_dsn`
-- `oracle_client_lib`
-- `sia_auto_approve`
-- `sia_max_rows`
-- `reports_dir`
+---
 
-The Oracle password is not stored. Set it in the shell that starts Claude Code before live execution:
+## Step 4 — Check readiness
+
+```text
+/oracle-semantic-analytics:check-oracle-config
+```
+
+This confirms prerequisites and connection settings are correct. A missing `SIA_USER_PWD` only blocks live execution — SQL generation and validation work without it.
+
+---
+
+## Step 5 — Ask analytics questions
+
+```text
+/oracle-semantic-analytics:ask-analytics
+```
+
+Example questions:
+
+```text
+How many active students are enrolled by academic program for Fall 2026?
+Show full-time student count for each fall term over the last three years.
+Break down enrollment by academic career for the current academic year.
+```
+
+Claude will:
+1. Route the question to the right skill via `routing/subject-area-routing.yaml`
+2. Load the bundled semantic model (`assets/semantic_models/sia_term_enrollments.yaml`)
+3. Clarify ambiguous terms (e.g. "current term") before generating SQL
+4. Generate an Oracle 19c `SELECT`-only query
+5. Validate the SQL locally before presenting it
+6. Ask for your approval before executing against Oracle (unless `sia_auto_approve` is set)
+7. Return an aggregated result table with metric definitions and caveats
+
+---
+
+## Demo mode
+
+For controlled demos, set `sia_auto_approve: true` during setup or in the shell:
 
 ```powershell
-$env:SIA_USER_PWD = "your_password"
+$env:SIA_AUTO_APPROVE = "true"
 ```
 
-For a persistent enterprise setup, set `SIA_USER_PWD` with your approved local password-management process rather than pasting it into Claude chat.
+Validated read-only SQL will execute without an extra prompt.
 
-Manual terminal fallback:
+---
+
+## Available commands
+
+| Command | Purpose |
+|---|---|
+| `/oracle-semantic-analytics:setup-analytics` | First-time setup wizard |
+| `/oracle-semantic-analytics:check-oracle-config` | Check prerequisites and connection readiness |
+| `/oracle-semantic-analytics:ask-analytics` | Ask any Oracle warehouse analytics question |
+| `/oracle-semantic-analytics:ask-enrollment` | Ask a student enrollment analytics question directly |
+
+---
+
+## Plugin contents
+
+```text
+skills/
+  oracle-analytics-router/        # Routes questions to the right subject-area skill
+  student-enrollment-analytics/   # Student enrollment analytics skill
+
+assets/
+  semantic_models/
+    sia_term_enrollments.yaml     # Semantic contract + Oracle 19c physical mapping
+
+routing/
+  subject-area-routing.yaml       # Keyword-based subject-area routing config
+
+scripts/
+  run_tool.py                     # Venv-aware script runner
+  check_prereqs.py                # Prerequisite checker
+  setup_analytics.py              # First-time setup wizard
+  configure_oracle.py             # Manual terminal config fallback
+  analytics_config.py             # Config file I/O
+  generate_prompt_context.py      # Generate semantic context from question
+  validate_sql.py                 # Local SQL validation (no Oracle required)
+  execute_oracle_readonly.py      # Read-only Oracle execution
+  validate_plugin_package.py      # Plugin package structure validator
+
+commands/
+  setup-analytics.md
+  check-oracle-config.md
+  ask-analytics.md
+  ask-enrollment.md
+
+examples/
+  sample_generated_sql.sql        # Reference SQL example
+```
+
+---
+
+## Manual terminal fallback
+
+If the Claude Code command flow doesn't work, run setup from a terminal:
 
 ```powershell
 python "${CLAUDE_PLUGIN_ROOT}/scripts/configure_oracle.py"
 ```
 
-Use the manual fallback only when you intentionally want a terminal wizard outside the normal Claude Code command flow.
+---
 
 ## Local developer setup
 
-For repository development, you can also install dependencies in an in-repo virtual environment:
+For repository development only:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -r distributed-models/plugins/oracle-semantic-analytics/requirements.txt
+pip install -r distributed-models/plugins/oracle-semantic-analytics/requirements.txt
 ```
 
-For SQL generation and validation only, Oracle credentials are not required:
+Run individual tools directly (from the plugin scripts folder):
 
 ```powershell
 python scripts/run_tool.py check_prereqs.py
-python scripts/setup_analytics.py --skip-install
-python scripts/run_tool.py check_prereqs.py --require-oracle
-python scripts/validate_plugin_package.py
 python scripts/run_tool.py validate_sql.py examples/sample_generated_sql.sql
-Get-Content examples/sample_generated_sql.sql | python scripts/run_tool.py validate_sql.py -
+python scripts/run_tool.py generate_prompt_context.py --question "active student count by program for Fall 2026"
 ```
 
-The executor defaults to Oracle thick mode because many Oracle environments use Native Network Encryption. Users should not need to choose a mode during normal setup; the setup detects common Oracle Client locations and stores the client library folder when found. Thin mode is an advanced override with `SIA_ORACLE_THIN_MODE=true`.
+---
 
-Never commit real Oracle credentials.
+## Safety rules
 
-## Generate semantic prompt context
-
-```powershell
-python scripts/run_tool.py generate_prompt_context.py \
-  --question "How many active students are enrolled by academic program for Fall 2026?"
-```
-
-## Validate SQL
-
-```powershell
-python scripts/run_tool.py validate_sql.py examples/sample_generated_sql.sql
-```
-
-## Execute SQL
-
-Execution is optional and must happen only after SQL validation. Set `sia_auto_approve` in `~/.oracle-semantic-analytics/config.json`, or set `SIA_AUTO_APPROVE=true` in the shell, to skip repeated interactive execution prompts during a controlled demo session:
-
-```powershell
-python scripts/run_tool.py execute_oracle_readonly.py examples/sample_generated_sql.sql --yes
-Get-Content examples/sample_generated_sql.sql | python scripts/run_tool.py execute_oracle_readonly.py - --yes
-```
-
-The executor runs only after the SQL passes local validation, starts an Oracle read-only transaction, and caps returned rows with `SIA_MAX_ROWS` or config `sia_max_rows`. This remains demo-level validation, not production governance.
-
-## Demo workflow
-
-1. Run `/oracle-semantic-analytics:setup-analytics` once after install.
-2. Ask with `/oracle-semantic-analytics:ask-analytics`.
-3. Route the question using `routing/subject-area-routing.yaml`.
-4. Generate or inspect semantic context with `python scripts/run_tool.py generate_prompt_context.py --question "..."`
-5. Generate Oracle 19c `SELECT` SQL using only bundled semantic model objects.
-6. Validate with `python scripts/run_tool.py validate_sql.py -` using stdin.
-7. Execute only with `python scripts/run_tool.py execute_oracle_readonly.py - --yes` using stdin.
-8. Use `SIA_AUTO_APPROVE=true` or config `sia_auto_approve: true` to avoid repeated execution prompts during a controlled demo session.
-
-For Claude Code command usage, prefer piping generated SQL to `run_tool.py validate_sql.py -` and `run_tool.py execute_oracle_readonly.py -` so temporary SQL files are not left in the user's project folder.
-
-## Safety boundaries
-
-- Do not paste passwords into Claude chat.
-- Do not commit `.env`, Oracle wallet files, DSNs, keys, or student PII.
-- Do not create plugin temp files in the user's working directory; use stdin for SQL and `~/.oracle-semantic-analytics/reports` for reports.
-- Do not invent tables, joins, metrics, or filters outside `assets/semantic_models/`.
-- Do not return row-level student records.
-- Use aggregate answers and small-cell/privacy caveats for student analytics.
+- Never paste the Oracle password into Claude chat
+- Never commit `.env`, wallet files, DSNs, API keys, or student PII
+- SQL generation and validation never require a live Oracle connection
+- Only `SELECT` statements are permitted — no DML or DDL
+- Execution is always read-only and row-capped
+- Results are aggregate only — no row-level student records are returned
