@@ -137,7 +137,7 @@ Validated read-only SQL will execute without an extra prompt.
 | `/oracle-semantic-analytics:setup-analytics` | First-time setup wizard |
 | `/oracle-semantic-analytics:check-oracle-config` | Check prerequisites and connection readiness |
 | `/oracle-semantic-analytics:ask-analytics` | Ask any Oracle warehouse analytics question |
-| `/oracle-semantic-analytics:ask-enrollment` | Ask a student enrollment analytics question directly |
+
 
 ---
 
@@ -170,7 +170,6 @@ commands/
   setup-analytics.md
   check-oracle-config.md
   ask-analytics.md
-  ask-enrollment.md
 
 mcp_server/
   oracle_semantic_mcp.py          # Local MCP tools for health, context, validation, execution
