@@ -59,7 +59,19 @@ Do not use for:
    If MCP unavailable: pipe SQL to
    `python "${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py" execute_oracle_readonly.py - --yes`
 
-10. Explain metric definitions, filters applied, assumptions, and caveats.
+10. Decide whether a visualization improves understanding using the semantic
+   model's `presentation.visualization_guidance`.
+   - For time/term/year trends with a numeric measure, call
+     `oracle_semantic_render_report` with `chart_type: "line"`.
+   - For categorical breakdowns with a numeric measure, call
+     `oracle_semantic_render_report` with `chart_type: "bar"`.
+   - For single-value answers, very small tables, or results where a chart adds
+     no clarity, do not render a chart/report.
+   - Include the question, validated SQL, result columns, result rows, and a short
+     summary in the report payload.
+
+11. Explain metric definitions, filters applied, assumptions, caveats, and include
+   the local report path when a report was rendered.
 
 ## Institutional Calendar Convention
 
