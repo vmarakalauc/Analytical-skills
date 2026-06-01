@@ -84,6 +84,15 @@ def tool_schema() -> list[dict[str, Any]]:
             },
         },
         {
+            "name": "oracle_semantic_data_dictionary",
+            "description": (
+                "Generate an Excel data dictionary for the bundled semantic model. "
+                "Produces a multi-sheet .xlsx file covering dimensions, measures, "
+                "business glossary, and governance rules. Opens the file automatically."
+            ),
+            "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
+        },
+        {
             "name": "oracle_semantic_render_report",
             "description": (
                 "Render query results as a local HTML analytics report with an optional chart. "
@@ -146,6 +155,12 @@ def call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             return text_result("Missing required argument: sql", is_error=True)
         code, output = run_script("execute_oracle_readonly.py", ["-", "--yes"], stdin=sql)
         return text_result(output, is_error=code != 0)
+
+    if name == "oracle_semantic_data_dictionary":
+        code, output = run_script("render_data_dictionary.py", [])
+        if code != 0:
+            return text_result(output, is_error=True)
+        return text_result(f"Data dictionary written: {output.strip()}")
 
     if name == "oracle_semantic_render_report":
         payload = {

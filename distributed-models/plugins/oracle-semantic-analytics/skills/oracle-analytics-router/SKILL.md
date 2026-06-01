@@ -100,6 +100,13 @@ These apply to every subject area regardless of which model is loaded:
 - Never read, display, or ask for credential files or passwords.
 - Do not create temp SQL files in the user's project folder — pipe SQL via stdin.
 
+## Data Dictionary
+
+When the user asks for a data dictionary, field reference, column mapping, or
+business glossary, call `oracle_semantic_data_dictionary`. It generates a
+multi-sheet Excel file covering dimensions, measures, glossary, and governance,
+opens it automatically, and returns the file path.
+
 ## Adding a New Subject Area
 
 Add a new entry to `routing/subject-area-routing.yaml` pointing to a new semantic
