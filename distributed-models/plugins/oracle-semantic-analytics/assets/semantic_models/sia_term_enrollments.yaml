@@ -507,13 +507,6 @@ semantic_rules:
       - active vs historical enrollment
       - student count vs enrollment record count
 
-  visualization_guidance:
-    mode: llm_decides
-    directive: >
-      Choose a visualization only when it improves understanding of the result.
-      Prefer simple tables when a chart would add noise. When charting helps,
-      choose the chart type based on the data shape and explain the reason.
-
   behavior:
     clarification_rules:
       - term: current term
