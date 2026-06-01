@@ -57,6 +57,22 @@ Do not use for:
 
 10. Explain metric definitions, filters applied, assumptions, and caveats.
 
+## Institutional Calendar Convention
+
+All subject areas in this plugin share the same academic term code convention.
+Term codes are numeric; the last digit encodes the season:
+
+| Last digit | Season |
+|---|---|
+| 2 | Winter |
+| 4 | Spring |
+| 6 | Summer |
+| 8 | Autumn |
+
+Examples: `20268` = Autumn 2026, `20264` = Spring 2026.
+When filtering by season, use `SUBSTR(term_code_column, -1) = '<digit>'`.
+"Current term" always requires clarification — never assume.
+
 ## Universal SQL Rules
 
 These apply to every subject area regardless of which model is loaded:

@@ -520,7 +520,7 @@ semantic_rules:
         action: always ask the user which term before generating SQL
       - term: students
         default_interpretation: COUNT(DISTINCT SCHOLAR_WID) — distinct active students
-        clarify_if: user says "enrollments" or "records" instead of "students"
+        clarify_if: it is ambiguous whether the user wants distinct students or enrollment record count
       - term: active enrollment
         default_interpretation: DELETE_FLG = 'N' AND X_TERM_ENROLLED_FLAG = 'Y'
         clarify_if: user says "all enrollments" or "historical"
@@ -531,15 +531,10 @@ semantic_rules:
       - Exclude placeholder values (__NOT_APPLICABLE__, __UNASSIGNED__) from academic_career and academic_program dimensions.
       - For academic_load (full-time/part-time), always join W_XACT_TYPE_D using the join_template in lookup_rules.xact_type_discriminator. Never filter on a column directly on the fact table.
       - For role-playing plan dimensions (majors, minors), join W_SIA_ACAD_PLAN_D once per role using the correct FK column (X_MAJOR_1_WID, X_MINOR_1_WID, etc.).
-      - Use fully qualified Oracle table names (OBIA_DW.schema.table). Never use unqualified names.
-      - Use FETCH FIRST n ROWS ONLY for row limits. Never use LIMIT.
-      - Never SELECT *. Always name columns explicitly.
       - Never return restricted fields: student_name, student_email, date_of_birth, scholar_id.
       - Never return row-level student records. All results must be aggregates.
-      - Validate SQL before execution. Do not ask the user before running local validation.
 
     output_rules:
-      - Always show the validated SQL to the user before executing.
       - Explain the metric definition, active filters applied, and any assumptions made.
       - Apply small-cell suppression when student_count < 10.
 
