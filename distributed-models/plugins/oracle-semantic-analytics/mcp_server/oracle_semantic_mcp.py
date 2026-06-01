@@ -84,6 +84,24 @@ def tool_schema() -> list[dict[str, Any]]:
             },
         },
         {
+            "name": "oracle_semantic_save_report",
+            "description": (
+                "Save a complete self-contained HTML report to the reports directory and open it in the browser. "
+                "Use this when you want full control over the visualization — generate the HTML including "
+                "Chart.js charts, tables, and layout, then pass it here to save and open. "
+                "The HTML must be a complete document (<!doctype html>...)."
+            ),
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "html": {"type": "string", "description": "Complete self-contained HTML document."},
+                    "title": {"type": "string", "description": "Short title used for the filename slug."},
+                },
+                "required": ["html", "title"],
+                "additionalProperties": False,
+            },
+        },
+        {
             "name": "oracle_semantic_data_dictionary",
             "description": (
                 "Generate an Excel data dictionary for the bundled semantic model. "
@@ -155,6 +173,27 @@ def call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             return text_result("Missing required argument: sql", is_error=True)
         code, output = run_script("execute_oracle_readonly.py", ["-", "--yes"], stdin=sql)
         return text_result(output, is_error=code != 0)
+
+    if name == "oracle_semantic_save_report":
+        html = str(arguments.get("html", "")).strip()
+        title = str(arguments.get("title", "report")).strip()
+        if not html:
+            return text_result("Missing required argument: html", is_error=True)
+        import re as _re
+        from datetime import datetime as _dt
+        from pathlib import Path as _Path
+        slug = _re.sub(r"[^a-zA-Z0-9]+", "-", title.lower()).strip("-")[:60] or "report"
+        reports_dir = _Path.home() / ".oracle-semantic-analytics" / "reports"
+        reports_dir.mkdir(parents=True, exist_ok=True)
+        filename = f"{_dt.now().strftime('%Y%m%d-%H%M%S')}-{slug}.html"
+        path = reports_dir / filename
+        path.write_text(html, encoding="utf-8")
+        try:
+            import webbrowser
+            webbrowser.open(path.as_uri())
+        except Exception:
+            pass
+        return text_result(f"Report saved: {path}")
 
     if name == "oracle_semantic_data_dictionary":
         code, output = run_script("render_data_dictionary.py", [])

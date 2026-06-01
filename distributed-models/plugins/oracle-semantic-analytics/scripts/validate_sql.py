@@ -49,8 +49,8 @@ def validate(sql: str) -> list[str]:
     errors = []
     normalized = normalize(sql)
 
-    if not normalized.startswith("SELECT"):
-        errors.append("Only SELECT statements are allowed.")
+    if not (normalized.startswith("SELECT") or normalized.startswith("WITH")):
+        errors.append("Only SELECT statements (including CTEs starting with WITH) are allowed.")
 
     if ";" in normalized[:-1]:
         errors.append("Multiple statements are not allowed.")
