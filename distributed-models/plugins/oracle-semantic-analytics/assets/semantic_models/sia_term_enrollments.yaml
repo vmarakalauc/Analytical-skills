@@ -514,6 +514,35 @@ semantic_rules:
       Prefer simple tables when a chart would add noise. When charting helps,
       choose the chart type based on the data shape and explain the reason.
 
+  behavior:
+    clarification_rules:
+      - term: current term
+        action: always ask the user which term before generating SQL
+      - term: students
+        default_interpretation: COUNT(DISTINCT SCHOLAR_WID) — distinct active students
+        clarify_if: user says "enrollments" or "records" instead of "students"
+      - term: active enrollment
+        default_interpretation: DELETE_FLG = 'N' AND X_TERM_ENROLLED_FLAG = 'Y'
+        clarify_if: user says "all enrollments" or "historical"
+
+    sql_generation_rules:
+      - Always resolve logical measures and dimensions from this model first, then apply the physical mapping.
+      - Apply active enrollment filter (DELETE_FLG = 'N' AND X_TERM_ENROLLED_FLAG = 'Y') unless user explicitly requests historical or deleted records.
+      - Exclude placeholder values (__NOT_APPLICABLE__, __UNASSIGNED__) from academic_career and academic_program dimensions.
+      - For academic_load (full-time/part-time), always join W_XACT_TYPE_D using the join_template in lookup_rules.xact_type_discriminator. Never filter on a column directly on the fact table.
+      - For role-playing plan dimensions (majors, minors), join W_SIA_ACAD_PLAN_D once per role using the correct FK column (X_MAJOR_1_WID, X_MINOR_1_WID, etc.).
+      - Use fully qualified Oracle table names (OBIA_DW.schema.table). Never use unqualified names.
+      - Use FETCH FIRST n ROWS ONLY for row limits. Never use LIMIT.
+      - Never SELECT *. Always name columns explicitly.
+      - Never return restricted fields: student_name, student_email, date_of_birth, scholar_id.
+      - Never return row-level student records. All results must be aggregates.
+      - Validate SQL before execution. Do not ask the user before running local validation.
+
+    output_rules:
+      - Always show the validated SQL to the user before executing.
+      - Explain the metric definition, active filters applied, and any assumptions made.
+      - Apply small-cell suppression when student_count < 10.
+
 physical_mappings:
   - id: physical.oracle19c.obia_dw
     platform:
