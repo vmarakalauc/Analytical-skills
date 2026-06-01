@@ -24,17 +24,23 @@ printf '%s\n' "<generated SQL>" | python "${CLAUDE_PLUGIN_ROOT}/scripts/run_tool
 Steps:
 
 1. Use `${CLAUDE_PLUGIN_ROOT}` as the installed plugin root.
-2. Run or reason from `${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py check_prereqs.py`.
+2. Prefer the plugin MCP tools when available:
+   - `oracle_semantic_health`
+   - `oracle_semantic_get_context`
+   - `oracle_semantic_validate_sql`
+   - `oracle_semantic_execute_sql`
+3. If MCP tools are unavailable, fall back to `${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py`.
+4. Run or reason from MCP health or `${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py check_prereqs.py`.
    - If core packages/config are missing, ask the user to run `/oracle-semantic-analytics:setup-analytics`.
    - Missing `SIA_USER_PWD` blocks only live execution, not SQL generation or validation.
-3. Load `${CLAUDE_PLUGIN_ROOT}/routing/subject-area-routing.yaml`.
-4. Route the question to the best supported subject area.
-5. Use the matched subject-area skill and semantic model.
-6. Generate relevant semantic context with `${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py generate_prompt_context.py`.
-7. Ask clarifying questions if the term, metric, subject area, or grouping is ambiguous.
-8. Generate Oracle 19c SELECT-only SQL.
-9. Validate immediately with `${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py validate_sql.py -` using stdin; do not ask before running local validation.
-10. If `SIA_AUTO_APPROVE=true` is set in user config or environment, and `SIA_USER_PWD` is available, execute the validated SQL without asking again.
-11. If auto-approval is not set, ask once before Oracle execution.
-12. Execute only with `${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py execute_oracle_readonly.py - --yes` using stdin.
-13. Summarize result, metric definition, filters, route choice, and caveats.
+5. Load `${CLAUDE_PLUGIN_ROOT}/routing/subject-area-routing.yaml`.
+6. Route the question to the best supported subject area.
+7. Use the matched subject-area skill and semantic model.
+8. Generate relevant semantic context with MCP `oracle_semantic_get_context` or `${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py generate_prompt_context.py`.
+9. Ask clarifying questions if the term, metric, subject area, or grouping is ambiguous.
+10. Generate Oracle 19c SELECT-only SQL.
+11. Validate immediately with MCP `oracle_semantic_validate_sql` or `${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py validate_sql.py -`; do not ask before running local validation.
+12. If `SIA_AUTO_APPROVE=true` is set in user config or environment, and `SIA_USER_PWD` is available, execute the validated SQL without asking again.
+13. If auto-approval is not set, ask once before Oracle execution.
+14. Execute only with MCP `oracle_semantic_execute_sql` or `${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py execute_oracle_readonly.py - --yes`.
+15. Summarize result, metric definition, filters, route choice, and caveats.

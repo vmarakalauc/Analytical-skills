@@ -64,7 +64,8 @@ assets/semantic_models/sia_term_enrollments.yaml
   - `X_TERM_ENROLLED_FLAG = 'Y'`
 - "Enrollment count" may mean enrollment rows; clarify if the user means distinct students or records.
 - "Current term" or "this term" may require clarification.
-- For Fall 2026 in this demo, assume term code `20263` only if the local model or user confirms the convention.
+- Fall/Autumn terms use term codes ending in `8` in this semantic model.
+- Full-time academic load uses `W_XACT_TYPE_D.XACT_TYPE_CODE = 'F'` with `W_XACT_CODE = 'SIA_ACADEMIC_LOAD_CODE'`.
 
 ## Required SQL Behavior
 

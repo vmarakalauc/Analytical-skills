@@ -54,6 +54,19 @@ def validate_plugin_manifest() -> None:
         if (ROOT / ".claude-plugin" / name).exists():
             fail(f"{name}/ must be at plugin root, not under .claude-plugin/")
 
+def validate_mcp_config() -> None:
+    mcp_path = ROOT / ".mcp.json"
+    mcp = load_json(mcp_path)
+    servers = mcp.get("mcpServers", {})
+    server = servers.get("oracle-semantic-analytics")
+    if not server:
+        fail(".mcp.json missing oracle-semantic-analytics server")
+    args = server.get("args", [])
+    if not any("${CLAUDE_PLUGIN_ROOT}" in str(arg) for arg in args):
+        fail(".mcp.json server args must use ${CLAUDE_PLUGIN_ROOT}")
+    if not (ROOT / "mcp_server" / "oracle_semantic_mcp.py").exists():
+        fail("MCP server script is missing")
+
 def validate_skills() -> None:
     skills_dir = ROOT / "skills"
     if not skills_dir.exists():
@@ -183,6 +196,7 @@ def validate_sample_sql() -> None:
 def main() -> int:
     validate_marketplace()
     validate_plugin_manifest()
+    validate_mcp_config()
     validate_skills()
     validate_routing()
     validate_no_committed_secrets()

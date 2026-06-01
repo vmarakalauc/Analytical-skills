@@ -2,6 +2,8 @@
 
 A Claude Code plugin for Oracle 19c student enrollment analytics. It generates and validates SQL from natural language using a bundled semantic model, with optional live Oracle execution.
 
+The plugin also ships a local MCP server for semantic context, SQL validation, and read-only execution. After plugin updates, run `/reload-plugins` so Claude Code restarts the MCP server from the current plugin version.
+
 ---
 
 ## Step 1 — Install the plugin
@@ -106,12 +108,13 @@ Break down enrollment by academic career for the current academic year.
 
 Claude will:
 1. Route the question to the right skill via `routing/subject-area-routing.yaml`
-2. Load the bundled semantic model (`assets/semantic_models/sia_term_enrollments.yaml`)
-3. Clarify ambiguous terms (e.g. "current term") before generating SQL
-4. Generate an Oracle 19c `SELECT`-only query
-5. Validate the SQL locally before presenting it
-6. Ask for your approval before executing against Oracle (unless `sia_auto_approve` is set)
-7. Return an aggregated result table with metric definitions and caveats
+2. Prefer the bundled MCP tools for semantic context, validation, and execution
+3. Load the bundled semantic model (`assets/semantic_models/sia_term_enrollments.yaml`)
+4. Clarify ambiguous terms (e.g. "current term") before generating SQL
+5. Generate an Oracle 19c `SELECT`-only query
+6. Validate the SQL locally before presenting it
+7. Ask for your approval before executing against Oracle (unless `sia_auto_approve` is set)
+8. Return an aggregated result table with metric definitions and caveats
 
 ---
 
@@ -169,9 +172,27 @@ commands/
   ask-analytics.md
   ask-enrollment.md
 
+mcp_server/
+  oracle_semantic_mcp.py          # Local MCP tools for health, context, validation, execution
+
+.mcp.json                         # Plugin MCP server registration
+
 examples/
   sample_generated_sql.sql        # Reference SQL example
 ```
+
+---
+
+## MCP tools
+
+After `/reload-plugins`, Claude Code should load the `oracle-semantic-analytics` MCP server. It exposes:
+
+- `oracle_semantic_health`
+- `oracle_semantic_get_context`
+- `oracle_semantic_validate_sql`
+- `oracle_semantic_execute_sql`
+
+The command files tell Claude to prefer these MCP tools and fall back to `scripts/run_tool.py` only when MCP is unavailable.
 
 ---
 

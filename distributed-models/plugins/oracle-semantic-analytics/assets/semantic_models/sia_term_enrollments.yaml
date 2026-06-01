@@ -56,6 +56,18 @@ business_glossary:
     definition: Institutional academic year from the academic term dimension, not normal calendar year.
     maps_to:
       dimension: dimension.academic_year
+  - id: glossary.fall_term
+    term: fall term
+    definition: Autumn/Fall academic term. In this warehouse, fall term codes end with 8.
+    maps_to:
+      filter: filter.fall_terms
+      dimension: dimension.term
+  - id: glossary.full_time
+    term: full time
+    definition: Full-time academic load. In the Oracle physical mapping, this is W_XACT_TYPE_D.XACT_TYPE_CODE = 'F' with W_XACT_CODE = 'SIA_ACADEMIC_LOAD_CODE'.
+    maps_to:
+      filter: filter.full_time_students
+      dimension: dimension.academic_load
 
 logical_model:
   entities:
@@ -312,7 +324,31 @@ logical_model:
     - id: filter.full_time_students
       name: FullTimeStudents
       expression:
-        logical: academic_load = 'FULL_TIME'
+        logical: academic_load = 'full_time'
+
+    - id: filter.fall_terms
+      name: FallTerms
+      description: Autumn/Fall terms based on institutional term-code suffix.
+      expression:
+        logical: academic_term.season = 'fall'
+
+    - id: filter.winter_terms
+      name: WinterTerms
+      description: Winter terms based on institutional term-code suffix.
+      expression:
+        logical: academic_term.season = 'winter'
+
+    - id: filter.spring_terms
+      name: SpringTerms
+      description: Spring terms based on institutional term-code suffix.
+      expression:
+        logical: academic_term.season = 'spring'
+
+    - id: filter.summer_terms
+      name: SummerTerms
+      description: Summer terms based on institutional term-code suffix.
+      expression:
+        logical: academic_term.season = 'summer'
 
   relationships:
     - id: relationship.enrollment_student
@@ -432,12 +468,27 @@ semantic_rules:
     current_academic_year: 2026
     current_term_policy: ask_user
     term_code_rules:
-      spring:
-        suffix: '1'
-      summer:
+      winter:
         suffix: '2'
+        label: Winter
+      spring:
+        suffix: '4'
+        label: Spring
+      summer:
+        suffix: '6'
+        label: Summer
       fall:
-        suffix: '3'
+        suffix: '8'
+        label: Fall
+        institution_label: Autumn
+    season_lookup:
+      suffix_column: TERM_CODE
+      suffix_position: last_character
+      mappings:
+        '2': winter
+        '4': spring
+        '6': summer
+        '8': fall
     default_comparison:
       year_over_year: fall_to_fall
 
@@ -523,6 +574,15 @@ physical_mappings:
         columns:
           academic_year: ACAD_YR
           term_code: TERM_CODE
+          term_begin_date: TERM_BEGIN_DT
+          term_end_date: TERM_END_DT
+        season_derivation:
+          expression: SUBSTR(t.TERM_CODE, -1)
+          mappings:
+            '2': winter
+            '4': spring
+            '6': summer
+            '8': fall
 
       - logical_entity: entity.academic_career
         object_type: table
@@ -578,6 +638,11 @@ physical_mappings:
       filter.active_enrollment: f.DELETE_FLG = 'N' AND f.X_TERM_ENROLLED_FLAG = 'Y'
       filter.current_academic_year: t.ACAD_YR = '2026'
       filter.new_students: f.X_NEW_RETURNING = 'New'
+      filter.full_time_students: load_d.XACT_TYPE_CODE = 'F'
+      filter.fall_terms: SUBSTR(t.TERM_CODE, -1) = '8'
+      filter.winter_terms: SUBSTR(t.TERM_CODE, -1) = '2'
+      filter.spring_terms: SUBSTR(t.TERM_CODE, -1) = '4'
+      filter.summer_terms: SUBSTR(t.TERM_CODE, -1) = '6'
 
     lookup_rules:
       - id: lookup.domain_member
@@ -608,6 +673,18 @@ physical_mappings:
           academic_load:
             fk_column: ACAD_LOAD_WID
             w_xact_code: SIA_ACADEMIC_LOAD_CODE
+            preferred_alias: load_d
+            join_template: >
+              LEFT JOIN OBIA_DW.W_XACT_TYPE_D load_d
+                ON f.ACAD_LOAD_WID = load_d.ROW_WID
+               AND load_d.W_XACT_CODE = 'SIA_ACADEMIC_LOAD_CODE'
+            accepted_values:
+              full_time:
+                code: F
+                label: Full-Time
+              part_time:
+                code: P
+                label: Part-Time
           academic_level:
             fk_column: STRT_ACAD_LVL_WID
             w_xact_code: SIA_ACADEMIC_LEVEL_CODE

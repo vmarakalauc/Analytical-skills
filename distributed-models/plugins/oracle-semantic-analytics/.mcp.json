@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "oracle-semantic-analytics": {
+      "command": "python",
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/mcp_server/oracle_semantic_mcp.py"
+      ],
+      "env": {
+        "ORACLE_SEMANTIC_PLUGIN_ROOT": "${CLAUDE_PLUGIN_ROOT}",
+        "ORACLE_SEMANTIC_PLUGIN_DATA": "${CLAUDE_PLUGIN_DATA}"
+      }
+    }
+  }
+}

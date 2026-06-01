@@ -16,7 +16,8 @@ Configuration lives outside the repository:
 
 Steps:
 
-1. Run `python "${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py" check_prereqs.py`, or `python "${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py" check_prereqs.py --require-oracle` for live execution readiness.
-2. If configuration is missing, explain the missing items.
-3. Do not ask the user to paste passwords into chat.
-4. Recommend `/oracle-semantic-analytics:setup-analytics` for first-time setup and `SIA_USER_PWD` for the password.
+1. Prefer MCP `oracle_semantic_health` when available.
+2. If MCP is unavailable, run `python "${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py" check_prereqs.py`, or `python "${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py" check_prereqs.py --require-oracle` for live execution readiness.
+3. If configuration is missing, explain the missing items.
+4. Do not ask the user to paste passwords into chat.
+5. Recommend `/oracle-semantic-analytics:setup-analytics` for first-time setup and `SIA_USER_PWD` for the password.
