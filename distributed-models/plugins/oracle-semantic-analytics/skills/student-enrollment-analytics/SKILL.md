@@ -64,7 +64,7 @@ assets/semantic_models/sia_term_enrollments.yaml
   - `X_TERM_ENROLLED_FLAG = 'Y'`
 - "Enrollment count" may mean enrollment rows; clarify if the user means distinct students or records.
 - "Current term" or "this term" may require clarification.
-- Fall/Autumn terms use term codes ending in `8` in this semantic model.
+- Autumn terms use term codes ending in `8` in this semantic model.
 - Full-time academic load uses `W_XACT_TYPE_D.XACT_TYPE_CODE = 'F'` with `W_XACT_CODE = 'SIA_ACADEMIC_LOAD_CODE'`.
 
 ## Required SQL Behavior
@@ -90,7 +90,7 @@ assets/semantic_models/sia_term_enrollments.yaml
 For:
 
 ```text
-How many active students are enrolled by academic program for Fall 2026?
+How many active students are enrolled by academic program for Autumn 2026?
 ```
 
 Expected interpretation:
@@ -102,6 +102,6 @@ Expected interpretation:
 - Filters:
   - `DELETE_FLG = 'N'`
   - `X_TERM_ENROLLED_FLAG = 'Y'`
-  - Fall 2026 term
+  - Autumn 2026 term
 - SQL dialect: Oracle 19c
 - Output: aggregate table and explanation

@@ -1,7 +1,7 @@
 {
   "name": "analytical-skills",
   "description": "Claude Code plugin marketplace for analytical AI and semantic analytics demos.",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "owner": {
     "name": "vmarakalauc"
   },
@@ -13,7 +13,7 @@
       "name": "oracle-semantic-analytics",
       "source": "./distributed-models/plugins/oracle-semantic-analytics",
       "description": "Oracle 19c semantic analytics skills using distributed YAML semantic models, local SQL validation, and optional read-only Oracle execution.",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "author": {
         "name": "vmarakalauc"
       },

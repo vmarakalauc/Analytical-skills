@@ -101,8 +101,8 @@ This confirms prerequisites and connection settings are correct. A missing `SIA_
 Example questions:
 
 ```text
-How many active students are enrolled by academic program for Fall 2026?
-Show full-time student count for each fall term over the last three years.
+How many active students are enrolled by academic program for Autumn 2026?
+Show full-time student count for each autumn term over the last three years.
 Break down enrollment by academic career for the current academic year.
 ```
 
@@ -159,7 +159,7 @@ scripts/
   run_tool.py                     # Venv-aware script runner
   check_prereqs.py                # Prerequisite checker
   setup_analytics.py              # First-time setup wizard
-  configure_oracle.py             # Manual terminal config fallback
+  configure_oracle.py             # Manual terminal config alternative
   analytics_config.py             # Config file I/O
   generate_prompt_context.py      # Generate semantic context from question
   validate_sql.py                 # Local SQL validation (no Oracle required)
@@ -192,11 +192,11 @@ After `/reload-plugins`, Claude Code should load the `oracle-semantic-analytics`
 - `oracle_semantic_validate_sql`
 - `oracle_semantic_execute_sql`
 
-The command files tell Claude to prefer these MCP tools and fall back to `scripts/run_tool.py` only when MCP is unavailable.
+The command files tell Claude to prefer these MCP tools and use `scripts/run_tool.py` only when MCP is unavailable.
 
 ---
 
-## Manual terminal fallback
+## Manual Terminal Alternative
 
 If the Claude Code command flow doesn't work, run setup from a terminal:
 
@@ -221,7 +221,7 @@ Run individual tools directly (from the plugin scripts folder):
 ```powershell
 python scripts/run_tool.py check_prereqs.py
 python scripts/run_tool.py validate_sql.py examples/sample_generated_sql.sql
-python scripts/run_tool.py generate_prompt_context.py --question "active student count by program for Fall 2026"
+python scripts/run_tool.py generate_prompt_context.py --question "active student count by program for Autumn 2026"
 ```
 
 ---

@@ -48,7 +48,7 @@ USER QUESTION:
 
 CANONICAL SEMANTIC SHORTCUTS:
 - Full-time students: join OBIA_DW.W_XACT_TYPE_D as load_d on f.ACAD_LOAD_WID = load_d.ROW_WID and load_d.W_XACT_CODE = 'SIA_ACADEMIC_LOAD_CODE'; filter load_d.XACT_TYPE_CODE = 'F'.
-- Fall/Autumn terms: filter SUBSTR(t.TERM_CODE, -1) = '8'. Winter uses suffix '2', Spring uses suffix '4', Summer uses suffix '6'.
+- Autumn terms: filter SUBSTR(t.TERM_CODE, -1) = '8'. Winter uses suffix '2', Spring uses suffix '4', Summer uses suffix '6'.
 - Do not run discovery queries for these mappings unless the user explicitly asks to audit the semantic model.
 
 ORACLE ANALYTICS ROUTER SKILL:

@@ -150,7 +150,7 @@ def handle(message: dict[str, Any]) -> None:
             {
                 "protocolVersion": "2025-06-18",
                 "capabilities": {"tools": {"listChanged": False}},
-                "serverInfo": {"name": "oracle-semantic-analytics", "version": "0.1.2"},
+                "serverInfo": {"name": "oracle-semantic-analytics", "version": "0.1.3"},
             },
         )
         return

@@ -29,7 +29,7 @@ Steps:
    - `oracle_semantic_get_context`
    - `oracle_semantic_validate_sql`
    - `oracle_semantic_execute_sql`
-3. If MCP tools are unavailable, fall back to `${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py`.
+3. If MCP tools are unavailable, use `${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py`.
 4. Run or reason from MCP health or `${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py check_prereqs.py`.
 5. Use `oracle-analytics-router` to confirm the route is `student_enrollment`.
 6. Load `${CLAUDE_PLUGIN_ROOT}/assets/semantic_models/sia_term_enrollments.yaml`.

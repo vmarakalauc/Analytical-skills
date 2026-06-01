@@ -27,34 +27,30 @@ Do not use for:
 
 ## Quick Reference
 
-- Routes file: `routing/subject-area-routing.yaml`
-- Core prerequisite check: `python scripts/run_tool.py check_prereqs.py`
-- Live execution readiness: `python scripts/run_tool.py check_prereqs.py --require-oracle`
-- First-time setup: `python scripts/setup_analytics.py`
+- MCP server: `oracle-semantic-analytics` (started automatically by Claude Code after `/reload-plugins`)
+- MCP tools: `oracle_semantic_health`, `oracle_semantic_get_context`, `oracle_semantic_validate_sql`, `oracle_semantic_execute_sql`
+- Bash fallback (only if MCP unavailable): `python "${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py" <script> ...`
+- Routes file: `${CLAUDE_PLUGIN_ROOT}/routing/subject-area-routing.yaml`
 - User config: `~/.oracle-semantic-analytics/config.json`
 - Live execution password: `SIA_USER_PWD` in the shell that starts Claude Code
-- Runtime wrapper: `python scripts/run_tool.py <script-name.py> ...`
-- Context generator: `python scripts/run_tool.py generate_prompt_context.py --question "..."`
-- SQL validator: `python scripts/run_tool.py validate_sql.py -` reads generated SQL from stdin
-- SQL executor: `python scripts/run_tool.py execute_oracle_readonly.py - --yes` reads generated SQL from stdin
-- Demo auto-approval: `SIA_AUTO_APPROVE=true` in user config or environment
-- Oracle mode default: thick mode; thin mode is advanced-only with `SIA_ORACLE_THIN_MODE=true`
+- Auto-approval: `sia_auto_approve=true` in config or `SIA_AUTO_APPROVE=true` in environment
 
 ## Workflow
 
-1. Check core prerequisites with `scripts/run_tool.py check_prereqs.py`.
-2. Load `routing/subject-area-routing.yaml`.
-3. Match the user question to a route by keywords, subject-area intent, and available semantic models.
-4. If no route matches, say that this demo only supports the listed subject areas and ask the user to rephrase within those domains.
-5. For the matched route, use the route's subject-area skill and semantic model.
-6. Generate Oracle 19c `SELECT` SQL only from bundled semantic context.
-7. Validate SQL immediately with `scripts/run_tool.py validate_sql.py -`; do not ask before local validation.
-8. If `SIA_AUTO_APPROVE=true` is configured and `SIA_USER_PWD` is available, execute validated SQL without asking again.
-9. If auto-approval is not set, ask once before Oracle execution.
-10. Execute SQL only through `scripts/run_tool.py execute_oracle_readonly.py - --yes` using stdin.
-11. Explain the metric definition, filters, assumptions, and caveats.
+1. Call `oracle_semantic_health` to confirm prerequisites. If MCP is unavailable, fall back to `python "${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py" check_prereqs.py`.
+2. Read `${CLAUDE_PLUGIN_ROOT}/routing/subject-area-routing.yaml` to select the subject area.
+3. Match the user question to a route by keywords and subject-area intent.
+4. If no route matches, explain which subject areas are supported and ask the user to rephrase.
+5. For the matched route, use the subject-area skill and semantic model.
+6. Call `oracle_semantic_get_context` with the user's question to load the semantic context needed for SQL generation. Fallback: `python "${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py" generate_prompt_context.py --question "..."`.
+7. Generate Oracle 19c `SELECT`-only SQL from the semantic context.
+8. Immediately call `oracle_semantic_validate_sql` with the generated SQL — do not ask the user before validating. Fallback: pipe SQL to `python "${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py" validate_sql.py -`.
+9. If validation fails, fix the SQL and re-validate before proceeding.
+10. If `sia_auto_approve=true` is configured and `SIA_USER_PWD` is available, call `oracle_semantic_execute_sql` directly.
+11. Otherwise ask the user once for approval, then call `oracle_semantic_execute_sql`. Fallback: pipe SQL to `python "${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py" execute_oracle_readonly.py - --yes`.
+12. Explain the metric definition, filters, assumptions, and caveats.
 
-All relative paths above are relative to the installed plugin root. Do not search or explore the user's current working directory for bundled plugin files. Do not read or print credential files.
+All `${CLAUDE_PLUGIN_ROOT}` paths resolve to the installed plugin root. Do not search the user's project folder for plugin files. Do not read or print credential files.
 
 ## Supported Routes
 
@@ -66,29 +62,17 @@ Do not invent additional routes. Future subject areas should be added to `routin
 
 ## Prerequisite Handling
 
-For prompt-context generation and SQL validation:
+Call `oracle_semantic_health` first. If the MCP server is not available, fall back to:
 
 ```bash
-python scripts/setup_analytics.py
-python scripts/run_tool.py check_prereqs.py
-```
-
-For live Oracle execution:
-
-```bash
-python scripts/run_tool.py check_prereqs.py --require-oracle
+python "${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py" check_prereqs.py
+python "${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py" check_prereqs.py --require-oracle
 ```
 
 If Oracle configuration is missing, say:
 
 ```text
 Oracle execution is not configured yet. You can still generate and validate SQL. For live execution, run /oracle-semantic-analytics:setup-analytics once, then set SIA_USER_PWD in the shell that starts Claude Code. Do not paste passwords into chat.
-```
-
-Then suggest:
-
-```bash
-python plugins/oracle-semantic-analytics/scripts/setup_analytics.py
 ```
 
 ## Safety Rules

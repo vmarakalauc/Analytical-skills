@@ -29,7 +29,7 @@ Steps:
    - `oracle_semantic_get_context`
    - `oracle_semantic_validate_sql`
    - `oracle_semantic_execute_sql`
-3. If MCP tools are unavailable, fall back to `${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py`.
+3. If MCP tools are unavailable, use `${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py`.
 4. Run or reason from MCP health or `${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py check_prereqs.py`.
    - If core packages/config are missing, ask the user to run `/oracle-semantic-analytics:setup-analytics`.
    - Missing `SIA_USER_PWD` blocks only live execution, not SQL generation or validation.

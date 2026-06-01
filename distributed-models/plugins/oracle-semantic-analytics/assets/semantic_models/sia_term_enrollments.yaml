@@ -56,11 +56,11 @@ business_glossary:
     definition: Institutional academic year from the academic term dimension, not normal calendar year.
     maps_to:
       dimension: dimension.academic_year
-  - id: glossary.fall_term
-    term: fall term
-    definition: Autumn/Fall academic term. In this warehouse, fall term codes end with 8.
+  - id: glossary.autumn_term
+    term: autumn term
+    definition: Autumn academic term. In this warehouse, autumn term codes end with 8.
     maps_to:
-      filter: filter.fall_terms
+      filter: filter.autumn_terms
       dimension: dimension.term
   - id: glossary.full_time
     term: full time
@@ -326,11 +326,11 @@ logical_model:
       expression:
         logical: academic_load = 'full_time'
 
-    - id: filter.fall_terms
-      name: FallTerms
-      description: Autumn/Fall terms based on institutional term-code suffix.
+    - id: filter.autumn_terms
+      name: AutumnTerms
+      description: Autumn terms based on institutional term-code suffix.
       expression:
-        logical: academic_term.season = 'fall'
+        logical: academic_term.season = 'autumn'
 
     - id: filter.winter_terms
       name: WinterTerms
@@ -477,10 +477,9 @@ semantic_rules:
       summer:
         suffix: '6'
         label: Summer
-      fall:
+      autumn:
         suffix: '8'
-        label: Fall
-        institution_label: Autumn
+        label: Autumn
     season_lookup:
       suffix_column: TERM_CODE
       suffix_position: last_character
@@ -488,9 +487,9 @@ semantic_rules:
         '2': winter
         '4': spring
         '6': summer
-        '8': fall
+        '8': autumn
     default_comparison:
-      year_over_year: fall_to_fall
+      year_over_year: autumn_to_autumn
 
   intent_routing:
     supported_intents:
@@ -582,7 +581,7 @@ physical_mappings:
             '2': winter
             '4': spring
             '6': summer
-            '8': fall
+            '8': autumn
 
       - logical_entity: entity.academic_career
         object_type: table
@@ -639,7 +638,7 @@ physical_mappings:
       filter.current_academic_year: t.ACAD_YR = '2026'
       filter.new_students: f.X_NEW_RETURNING = 'New'
       filter.full_time_students: load_d.XACT_TYPE_CODE = 'F'
-      filter.fall_terms: SUBSTR(t.TERM_CODE, -1) = '8'
+      filter.autumn_terms: SUBSTR(t.TERM_CODE, -1) = '8'
       filter.winter_terms: SUBSTR(t.TERM_CODE, -1) = '2'
       filter.spring_terms: SUBSTR(t.TERM_CODE, -1) = '4'
       filter.summer_terms: SUBSTR(t.TERM_CODE, -1) = '6'
@@ -763,7 +762,7 @@ validation:
     - id: eval.clarify_current_term
       question: How many students are enrolled this term?
       expected_action: clarify
-      clarification: Ask whether Fall, Spring, or Summer.
+      clarification: Ask whether Autumn, Winter, Spring, or Summer.
     - id: eval.active_enrollment_filter_required
       question: Count enrollments by career
       expected_sql_must_include:
