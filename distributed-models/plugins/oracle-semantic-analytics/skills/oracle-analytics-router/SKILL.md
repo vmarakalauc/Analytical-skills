@@ -59,10 +59,14 @@ Do not use for:
    If MCP unavailable: pipe SQL to
    `python "${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py" execute_oracle_readonly.py - --yes`
 
-10. After execution, call `oracle_semantic_render_report` with the result. Choose
-   the chart type that best fits the data — the tool accepts "auto", "line", "bar",
-   or "none". Skip only when the result is a single value. Always include question,
-   validated SQL, result columns, result rows, and a one-sentence summary.
+10. After execution, decide whether a chart improves understanding. Call
+   `oracle_semantic_render_report` only when the result is a small, aggregated
+   set of data points where a visualization adds clarity — for example, a trend
+   over a few terms or a ranking across a handful of categories. Do not render
+   a chart for large result sets, granular row-level data, or when a table is
+   already clear. Choose the chart type that best fits the data shape. Always
+   include question, validated SQL, result columns, result rows, and a one-sentence
+   summary in the report payload.
 
 11. Explain metric definitions, filters applied, assumptions, caveats, and include
    the local report path when a report was rendered.
