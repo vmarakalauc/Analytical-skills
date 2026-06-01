@@ -45,9 +45,10 @@ Do not use for:
 7. Generate Oracle 19c `SELECT`-only SQL from the semantic context.
 8. Immediately call `oracle_semantic_validate_sql` with the generated SQL — do not ask the user before validating. Fallback: pipe SQL to `python "${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py" validate_sql.py -`.
 9. If validation fails, fix the SQL and re-validate before proceeding.
-10. If `sia_auto_approve=true` is configured and `SIA_USER_PWD` is available, call `oracle_semantic_execute_sql` directly.
-11. Otherwise ask the user once for approval, then call `oracle_semantic_execute_sql`. Fallback: pipe SQL to `python "${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py" execute_oracle_readonly.py - --yes`.
-12. Explain the metric definition, filters, assumptions, and caveats.
+10. Always display the validated SQL to the user before executing, regardless of auto-approve setting.
+11. If `sia_auto_approve=true` is configured and `SIA_USER_PWD` is available, call `oracle_semantic_execute_sql` directly.
+12. Otherwise ask the user once for approval, then call `oracle_semantic_execute_sql`. Fallback: pipe SQL to `python "${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py" execute_oracle_readonly.py - --yes`.
+13. Explain the metric definition, filters, assumptions, and caveats.
 
 All `${CLAUDE_PLUGIN_ROOT}` paths resolve to the installed plugin root. Do not search the user's project folder for plugin files. Do not read or print credential files.
 

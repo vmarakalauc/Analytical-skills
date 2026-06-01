@@ -25,8 +25,9 @@ Steps:
 7. Ask clarifying questions if the term, metric, subject area, or grouping is ambiguous.
 8. Generate Oracle 19c SELECT-only SQL.
 9. Call MCP tool `oracle_semantic_validate_sql` immediately — do not ask the user before validating.
-10. If `SIA_AUTO_APPROVE=true` is set in user config or environment, and `SIA_USER_PWD` is available, call MCP tool `oracle_semantic_execute_sql` without asking again.
-11. If auto-approval is not set, ask once before Oracle execution, then call MCP tool `oracle_semantic_execute_sql`.
-12. Summarize result, metric definition, filters, route choice, and caveats.
+10. Always display the validated SQL to the user before executing.
+11. If `SIA_AUTO_APPROVE=true` is set in user config or environment, and `SIA_USER_PWD` is available, call MCP tool `oracle_semantic_execute_sql` without asking again.
+12. If auto-approval is not set, ask once before Oracle execution, then call MCP tool `oracle_semantic_execute_sql`.
+13. Summarize result, metric definition, filters, route choice, and caveats.
 
 If the MCP server is unavailable, fall back to `${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py` for each step.
