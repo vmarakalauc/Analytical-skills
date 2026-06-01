@@ -101,18 +101,8 @@ def run_script(script: str, args: list[str], stdin: str | None = None) -> tuple[
 
 def call_tool(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     if name == "oracle_semantic_health":
-        payload = {
-            "plugin_root": str(ROOT),
-            "semantic_model_exists": MODEL.exists(),
-            "config_exists": CONFIG.exists(),
-            "runtime_python": runtime_python(),
-            "sia_user_set": bool(os.getenv("SIA_USER")),
-            "sia_dsn_set": bool(os.getenv("SIA_DSN")),
-            "sia_password_set": bool(os.getenv("SIA_USER_PWD")),
-            "oracle_client_lib_set": bool(os.getenv("ORACLE_CLIENT_LIB")),
-            "note": "No credential values are read or returned.",
-        }
-        return text_result(json.dumps(payload, indent=2))
+        code, output = run_script("check_prereqs.py", ["--require-oracle"])
+        return text_result(output, is_error=code != 0)
 
     if name == "oracle_semantic_get_context":
         question = str(arguments.get("question", "")).strip()
