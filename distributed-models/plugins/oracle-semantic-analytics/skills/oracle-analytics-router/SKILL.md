@@ -60,19 +60,14 @@ Do not use for:
    `python "${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py" execute_oracle_readonly.py - --yes`
 
 10. After execution, decide whether a visualization improves understanding.
-   For large result sets, granular row-level data, or when a table is already
-   clear — skip visualization entirely.
-   When a chart adds clarity, generate a complete self-contained HTML report
-   using Chart.js (CDN: https://cdn.jsdelivr.net/npm/chart.js) with the
-   appropriate chart type for the data shape:
-   - Single metric over time → line chart
-   - Multi-series pivoted data (programs × years) → grouped bar chart
-   - Categorical ranking → horizontal bar chart
-   Generate the full <!doctype html> document with the chart, result table,
-   question, validated SQL, and a summary section, then call
-   `oracle_semantic_save_report` with the HTML and a short title.
-   Use `oracle_semantic_render_report` only for simple single-series tabular
-   results where auto-inference is sufficient.
+   Skip charting for large result sets, granular row-level data, or when a
+   table is already the clearest presentation.
+   When a chart adds clarity, always generate a complete self-contained HTML
+   report and call `oracle_semantic_save_report`. Use Chart.js from CDN
+   (https://cdn.jsdelivr.net/npm/chart.js) and choose the chart type that
+   best represents the data — you decide based on the result shape and the
+   question. Include the chart, result table, question, validated SQL, and a
+   summary section in the HTML document.
 
 11. Explain metric definitions, filters applied, assumptions, caveats, and include
    the local report path when a report was rendered.
