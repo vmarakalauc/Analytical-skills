@@ -117,6 +117,9 @@ SKILL.md is needed — the router uses the YAML as the subject-area skill.
 
 ## Safety Rules
 
+- Never edit files under `~/.claude/plugins/cache/`. This is the installed
+  plugin cache — edits are lost on every plugin update. If a bug is found,
+  report it clearly so it can be fixed in the source repo and redistributed.
 - Never ask the user to paste a password into chat.
 - Never expose restricted fields (names, emails, IDs, SSNs).
 - Never bypass SQL validation.

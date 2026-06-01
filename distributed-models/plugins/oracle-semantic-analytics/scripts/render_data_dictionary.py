@@ -203,7 +203,9 @@ def write_glossary(wb: openpyxl.Workbook, model: dict) -> None:
         term = entry.get("term", "")
         maps_to = entry.get("maps_to", "")
         if isinstance(maps_to, list):
-            maps_to = ", ".join(maps_to)
+            maps_to = ", ".join(str(v) for v in maps_to)
+        elif isinstance(maps_to, dict):
+            maps_to = ", ".join(f"{k}: {v}" for k, v in maps_to.items())
         synonyms = ", ".join(entry.get("synonyms", []))
         notes = entry.get("notes", entry.get("description", ""))
         ws.append([term, maps_to, synonyms, notes])

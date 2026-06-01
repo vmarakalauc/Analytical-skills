@@ -16,6 +16,10 @@ This demo intentionally distributes:
 
 ## Rules
 
+- Never edit files under `~/.claude/plugins/cache/`. That directory is the
+  installed plugin cache and is overwritten on every plugin update. Any edits
+  made there are silently lost. If a bug is found in a plugin script, fix it
+  in the source repository and bump the plugin version to distribute the fix.
 - Do not implement a central server here.
 - Do not add MCP gateway code here.
 - Do not commit real Oracle credentials.
