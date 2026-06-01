@@ -47,11 +47,15 @@ Do not use for:
 
 7. If validation fails, fix the SQL and re-validate before proceeding.
 
-8. Display the validated SQL to the user.
+8. Always present the validated SQL to the user as a formatted code block before
+   calling `oracle_semantic_execute_sql`. This is a required step — `approved: true`
+   means the user has seen the SQL. Never pass `approved: true` without showing the
+   SQL first.
 
 9. If `sia_auto_approve=true` is configured and `SIA_USER_PWD` is available,
-   call `oracle_semantic_execute_sql` directly.
-   Otherwise ask the user once for approval, then execute.
+   show the SQL (step 8), then call `oracle_semantic_execute_sql` with `approved: true`.
+   Otherwise show the SQL (step 8), ask the user once for confirmation, then call
+   `oracle_semantic_execute_sql` with `approved: true`.
    If MCP unavailable: pipe SQL to
    `python "${CLAUDE_PLUGIN_ROOT}/scripts/run_tool.py" execute_oracle_readonly.py - --yes`
 
