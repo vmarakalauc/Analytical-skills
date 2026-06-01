@@ -76,6 +76,8 @@ Setup creates a local config outside your project folder:
 
 **The Oracle password is never stored** — it stays in your shell environment only.
 
+> **Permission prompts during setup or first use?** Claude Code asks for approval before running shell commands. When prompted, choose **"Yes, and don't ask again for: python \*"** to allow all plugin scripts to run silently from that point on.
+
 ---
 
 ## Step 4 — Check readiness
