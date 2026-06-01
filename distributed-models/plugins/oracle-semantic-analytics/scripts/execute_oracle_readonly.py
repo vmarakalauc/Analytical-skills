@@ -85,6 +85,7 @@ def main() -> int:
     with oracledb.connect(user=user, password=password, dsn=dsn) as conn:
         conn.autocommit = False
         with conn.cursor() as cur:
+            cur.execute("BEGIN BISETL.security_pkg.set_vpd_ctx(:username); END;", {"username": user})
             cur.execute("SET TRANSACTION READ ONLY")
             cur.execute(sql)
             cols = [d[0] for d in cur.description]
