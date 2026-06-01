@@ -90,11 +90,9 @@ def validate_routing() -> None:
     if not routes:
         fail("routing/subject-area-routing.yaml must define at least one route")
     for route in routes:
-        for field in ["id", "skill", "semantic_model", "keywords"]:
+        for field in ["id", "semantic_model", "keywords"]:
             if not route.get(field):
                 fail(f"route missing required field {field}: {route}")
-        if not (ROOT / "skills" / route["skill"] / "SKILL.md").exists():
-            fail(f"route references missing skill: {route['skill']}")
         if not (ROOT / route["semantic_model"]).exists():
             fail(f"route references missing semantic model: {route['semantic_model']}")
 

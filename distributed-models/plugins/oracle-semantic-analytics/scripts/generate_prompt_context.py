@@ -24,10 +24,8 @@ def main() -> int:
     model_path = Path(args.model)
     model = yaml.safe_load(model_path.read_text(encoding="utf-8"))
 
-    oracle_skill = read(ROOT / "skills" / "oracle-analytics-router" / "SKILL.md")
-    enrollment_skill = read(ROOT / "skills" / "student-enrollment-analytics" / "SKILL.md")
+    router_skill = read(ROOT / "skills" / "oracle-analytics-router" / "SKILL.md")
     routing = read(ROOT / "routing" / "subject-area-routing.yaml")
-    sql_rules = read(ROOT / "skills" / "oracle-analytics-router" / "references" / "sql_rules.md")
 
     relevant = {
         "semantic_model": model.get("semantic_model", {}),
@@ -46,31 +44,19 @@ def main() -> int:
 USER QUESTION:
 {args.question}
 
-CANONICAL SEMANTIC SHORTCUTS:
-- Full-time students: join OBIA_DW.W_XACT_TYPE_D as load_d on f.ACAD_LOAD_WID = load_d.ROW_WID and load_d.W_XACT_CODE = 'SIA_ACADEMIC_LOAD_CODE'; filter load_d.XACT_TYPE_CODE = 'F'.
-- Autumn terms: filter SUBSTR(t.TERM_CODE, -1) = '8'. Winter uses suffix '2', Spring uses suffix '4', Summer uses suffix '6'.
-- Do not run discovery queries for these mappings unless the user explicitly asks to audit the semantic model.
-
 ORACLE ANALYTICS ROUTER SKILL:
-{oracle_skill}
+{router_skill}
 
 SUBJECT-AREA ROUTING:
 {routing}
 
-STUDENT ENROLLMENT ANALYTICS SKILL:
-{enrollment_skill}
-
-SQL RULES:
-{sql_rules}
-
-LOCAL SEMANTIC YAML CONTEXT:
+SEMANTIC MODEL CONTEXT:
 {compact(yaml.safe_dump(relevant, sort_keys=False), 30000)}
 
 TASK:
-- Interpret the question.
-- Ask clarifying questions if required.
+- Follow the router skill workflow.
+- Apply the semantic_rules.behavior from the model above.
 - Generate Oracle 19c SELECT-only SQL.
-- Apply required semantic filters.
 - Validate before execution.
 - Explain metric definitions and assumptions.
 '''.strip())
